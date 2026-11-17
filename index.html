@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffe3ef">
+  <meta name="description" content="Tokyo Quest: a cozy kawaii stroll on a real map of Tokyo. Run everyday errands and find the neighborhood secrets.">
+  <title>東京クエスト Tokyo Quest</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+  <section id="select" class="screen">
+    <div class="select-sky">
+      <header class="brand">
+        <h1>東京<span>クエスト</span></h1>
+        <p class="en">Tokyo Quest</p>
+        <p class="tag">A cozy day on the real streets. Buy an onigiri, bow at a shrine, then find the alleys mostly locals know.</p>
+      </header>
+      <div id="char-grid" class="char-grid"></div>
+      <div id="preview" class="preview"><p>Pick a walking companion. Humans and animals, all drawn for this game.</p></div>
+      <div class="actions">
+        <button id="btn-continue" class="btn" hidden>つづきから Continue</button>
+        <button id="btn-start" class="btn primary" disabled>はじめる Start</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="game" class="screen" hidden>
+    <div id="map"></div>
+    <header class="hud">
+      <div class="pill who">
+        <strong id="who-name">Tokyo Quest</strong>
+        <em id="area-label">渋谷 Shibuya</em>
+      </div>
+      <div class="scores">
+        <div class="pill score"><b id="score-daily">0/8</b><span>日常 daily</span></div>
+        <div class="pill score"><b id="score-secret">0/17</b><span>ひみつ local</span></div>
+      </div>
+      <div class="hud-buttons">
+        <button id="btn-quest" class="icon-btn" aria-label="Quests">📜</button>
+        <button id="btn-train" class="icon-btn" aria-label="Train">🚃</button>
+        <button id="btn-recenter" class="icon-btn" aria-label="Back to me">◎</button>
+        <button id="btn-sound" class="icon-btn" aria-label="Sound">🔔</button>
+        <button id="btn-help" class="icon-btn" aria-label="How to play">?</button>
+      </div>
+    </header>
+    <div id="compass" class="compass" hidden>
+      <div id="arrow" class="arrow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 2l4 10H8.8V14H7.2v-2H4z" fill="#5c4652"/></svg></div>
+      <div class="meta"><strong id="compass-title"></strong><small id="compass-dist"></small></div>
+    </div>
+    <div id="bubble" class="bubble" hidden>
+      <div id="bubble-ja" class="ja"></div>
+      <div id="bubble-en" class="en"></div>
+      <button id="bubble-go" class="btn primary"></button>
+    </div>
+    <aside id="quest" class="sheet" hidden>
+      <div class="sheet-head">
+        <h2>クエスト</h2>
+        <button id="quest-close" class="x" aria-label="Close">×</button>
+      </div>
+      <div class="tabs">
+        <button id="tab-daily" class="tab on">日常 Everyday</button>
+        <button id="tab-secret" class="tab">ひみつ Secrets</button>
+      </div>
+      <div id="quest-list" class="quest-list"></div>
+    </aside>
+    <div class="dpad" aria-hidden="false">
+      <button class="up" data-dir="up" aria-label="North">↑</button>
+      <button class="left" data-dir="left" aria-label="West">←</button>
+      <button class="right" data-dir="right" aria-label="East">→</button>
+      <button class="down" data-dir="down" aria-label="South">↓</button>
+    </div>
+    <button id="btn-hurry" class="btn hurry">はや足</button>
+    <div id="toast" class="toast" hidden></div>
+    <div id="banner" class="banner" hidden></div>
+    <div id="burst" class="burst"></div>
+    <div id="train-anim" class="train-anim" hidden>
+      <div>
+        <div class="window"><div class="poles"></div></div>
+        <p id="train-anim-label">電車</p>
+        <p>ガタンゴトン…</p>
+      </div>
+    </div>
+    <div id="card-modal" class="modal" hidden>
+      <div class="card" role="dialog" aria-modal="true">
+        <button id="card-x" class="x" aria-label="Close">×</button>
+        <div id="card-body"></div>
+      </div>
+    </div>
+    <div id="train" class="modal" hidden>
+      <div class="card">
+        <button id="train-close" class="x" aria-label="Close">×</button>
+        <h3>電車 Train</h3>
+        <p class="sub">Hop to a real station, then walk the last bit. This is a cozy shortcut, not a timetable.</p>
+        <div id="train-list" class="train-list"></div>
+      </div>
+    </div>
+    <div id="help" class="modal" hidden>
+      <div class="card help">
+        <button id="help-close" class="x" aria-label="Close">×</button>
+        <h3>あそび方</h3>
+        <p><b>Desktop.</b> Arrow keys or WASD to walk. Shift hurries. Click the map or a pin to stroll there. Enter does the thing in the speech bubble.</p>
+        <p><b>Phone.</b> The pad walks. Tap the map to set a destination. はや足 is a faster step. Pinch to zoom.</p>
+        <p><b>日常</b> are ordinary Tokyo errands: an onigiri, the scramble, a station stamp, ramen, a vending machine, Yoyogi Park, Meiji Jingu, Tokyo Tower.</p>
+        <p><b>ひみつ</b> are neighborhood things, marked with a gold badge. Each one ends with a short local tip. Read it again from the quest list.</p>
+        <p><b>電車</b> drops you at a real station so Gotokuji, Yanaka, or Kichijoji are a ride plus a short walk, not an hour of holding an arrow.</p>
+        <p>You can cross blocks freely. The map underneath is real; the stroll is a little magical.</p>
+        <p>Map tiles © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, from tile.openstreetmap.org. Places were read from OpenStreetMap on 2026-11-17 and saved in the game, so play does not call Overpass. Data © OpenStreetMap contributors, ODbL.</p>
+        <p>Change who is walking. Stamps stay.</p>
+        <div id="mini-chars" class="chars-mini"></div>
+        <button id="btn-reset" class="btn">はじめから Reset this day</button>
+      </div>
+    </div>
+  </section>
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="js/characters.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
