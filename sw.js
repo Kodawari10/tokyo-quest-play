@@ -1,5 +1,5 @@
 /* App shell for Tokyo Quest. Map tiles are a different origin and are not cached here. */
-const CACHE = "tokyo-quest-v2";
+const CACHE = "tokyo-quest-v3";
 const FILES = [
   "./",
   "./index.html",
@@ -13,13 +13,9 @@ const FILES = [
   "./icons/icon-512.png",
   "./fonts/zen-maru-medium.woff2",
   "./fonts/zen-maru-bold.woff2",
-  "./vendor/leaflet/leaflet.css",
-  "./vendor/leaflet/leaflet.js",
-  "./vendor/leaflet/images/layers.png",
-  "./vendor/leaflet/images/layers-2x.png",
-  "./vendor/leaflet/images/marker-icon.png",
-  "./vendor/leaflet/images/marker-icon-2x.png",
-  "./vendor/leaflet/images/marker-shadow.png"
+  "./css/cartoon-style.json",
+  "./vendor/maplibre/maplibre-gl.css",
+  "./vendor/maplibre/maplibre-gl.js"
 ];
 
 self.addEventListener("install", (event) => {

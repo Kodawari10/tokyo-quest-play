@@ -53,10 +53,9 @@ const MISSIONS = [
     title: "Station stamp", titleJa: "駅スタンプ",
     blurb: "Touch in at a real station. The train board can hop you to another neighborhood any time.",
     verb: "Stamp", verbJa: "タッチ",
-    kind: "confirm",
-    prompt: "Hold your Pasmo over the gate.",
-    promptJa: "パスモをかざす",
-    button: "Touch", buttonJa: "ピッ",
+    kind: "timing",
+    prompt: "The doors are closing. Tap when the dot sits in the green gap.",
+    promptJa: "ドアのあいだでタップ",
     reward: "The gate chirps and opens. This station is in your stamp book.",
     rewardJa: "改札が開いた。この駅はスタンプ済み。"
   },

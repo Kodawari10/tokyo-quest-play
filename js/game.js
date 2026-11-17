@@ -2,6 +2,15 @@ const SAVE_KEY = "tokyo-quest-v1";
 const M_LAT = 111320;
 const WALK = 13;
 const HURRY = 28;
+const PRICE = { onigiri: 150, vending: 130, ramen: 420, dagashi: 80 };
+const EARN = { scramble: 120, onigiri: 80, station: 200, vending: 50, ramen: 200, park: 160, shrine: 240, tower: 260, lion: 180, sento: 200 };
+const TOYS = [
+  { id: "omamori", name: "Omamori", nameJa: "お守り" },
+  { id: "neko-charm", name: "Beckoning cat", nameJa: "招き猫チャーム" },
+  { id: "train-pin", name: "Train pin", nameJa: "電車ピンズ" },
+  { id: "onigiri-strap", name: "Onigiri strap", nameJa: "おにぎりストラップ" },
+  { id: "lantern", name: "Tiny lantern", nameJa: "小さな提灯" }
+];
 
 const GLYPH = {
   cross: '<svg viewBox="0 0 24 24"><path d="M4 8h16M4 16h16M8 4v16M16 4v16" stroke="#f28aaa" stroke-width="2" fill="none"/></svg>',
@@ -40,10 +49,15 @@ const state = {
   keys: {},
   busy: false,
   userPanned: false,
-  tab: "daily"
+  tab: "daily",
+  yen: 800,
+  hour: 9,
+  stamps: [],
+  toys: [],
+  walked: 0
 };
 
-let map, player, markerLayer, audioCtx;
+let map, player, poiMarkers = [], audioCtx, locMap, musicTimer, timingFrame;
 let lastTs = 0;
 let saveTimer = 0;
 let movedSinceSave = false;
@@ -77,13 +91,13 @@ function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    if (!data || data.version !== 1 || !data.characterId) return null;
+    if (!data || !data.characterId || (data.version !== 1 && data.version !== 2)) return null;
     return data;
   } catch (e) { return null; }
 }
 function save() {
   const data = {
-    version: 1,
+    version: 2,
     characterId: state.characterId,
     lat: state.lat,
     lng: state.lng,
@@ -92,7 +106,11 @@ function save() {
     activeId: state.activeId,
     muted: state.muted,
     introduced: state.introduced,
-    tab: state.tab
+    tab: state.tab,
+    yen: state.yen,
+    hour: state.hour,
+    stamps: state.stamps,
+    toys: state.toys
   };
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { /* ignore quota */ }
   movedSinceSave = false;
@@ -148,47 +166,49 @@ function clamp() {
 }
 
 function initMap() {
-  map = L.map("map", {
-    keyboard: false,
-    zoomControl: false,
+  map = new maplibregl.Map({
+    container: "map",
+    style: "css/cartoon-style.json",
+    center: [state.lng, state.lat],
+    zoom: 16.4,
+    minZoom: 12.5,
+    maxZoom: 18.5,
+    maxBounds: [[BOUNDS.west, BOUNDS.south], [BOUNDS.east, BOUNDS.north]],
     attributionControl: true,
-    minZoom: 13,
-    maxZoom: 19,
-    maxBounds: L.latLngBounds([BOUNDS.south, BOUNDS.west], [BOUNDS.north, BOUNDS.east]),
-    maxBoundsViscosity: 0.85,
+    dragRotate: false,
+    pitchWithRotate: false,
+    keyboard: false,
     doubleClickZoom: false
-  }).setView([state.lat, state.lng], 18);
-  L.control.zoom({ position: "topright" }).addTo(map);
-
-  const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
-  let tileFailed = false;
-  tiles.on("tileerror", () => {
-    if (tileFailed) return;
-    tileFailed = true;
-    const b = document.getElementById("banner");
-    b.hidden = false;
-    b.textContent = "Map tiles need a network connection. Your stamps are still saved on this device.";
   });
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }), "top-right");
   map.on("dragstart", () => { state.userPanned = true; });
   map.on("click", (e) => {
     if (state.busy) return;
-    state.dest = { lat: e.latlng.lat, lng: e.latlng.lng };
+    state.dest = { lat: e.lngLat.lat, lng: e.lngLat.lng };
     state.userPanned = false;
   });
-
-  markerLayer = L.layerGroup().addTo(map);
-  const icon = L.divIcon({
-    className: "char-marker",
-    html: spriteHtml(),
-    iconSize: [76, 76],
-    iconAnchor: [38, 68]
+  map.on("error", (ev) => {
+    const msg = (ev && ev.error && ev.error.message) || "";
+    console.error("map", msg);
+    if (/style|ajax|network|failed/i.test(msg)) {
+      const b = document.getElementById("banner");
+      if (!b.hidden) return;
+      b.hidden = false;
+      b.textContent = "The cartoon map needs a network connection. Your stamps are still saved on this device.";
+    }
   });
-  player = L.marker([state.lat, state.lng], { icon, zIndexOffset: 1000, interactive: false }).addTo(map);
-  buildMarkers();
-  requestAnimationFrame(() => map.invalidateSize());
+  const el = document.createElement("div");
+  el.className = "char-marker";
+  el.innerHTML = spriteHtml();
+  player = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([state.lng, state.lat]).addTo(map);
+  map.on("load", () => {
+    buildMarkers();
+    applySky();
+    const inner = document.querySelector(".maplibregl-ctrl-attrib-inner");
+    if (inner && !/OpenStreetMap/.test(inner.textContent)) {
+      inner.insertAdjacentHTML("beforeend", ' © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> © <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a>');
+    }
+  });
 }
 
 function spriteHtml() {
@@ -196,12 +216,8 @@ function spriteHtml() {
 }
 function paintCharacter() {
   if (!player) return;
-  player.setIcon(L.divIcon({
-    className: "char-marker",
-    html: spriteHtml(),
-    iconSize: [76, 76],
-    iconAnchor: [38, 68]
-  }));
+  const el = player.getElement();
+  if (el) el.innerHTML = spriteHtml();
 }
 
 function visiblePlaces() {
@@ -218,18 +234,20 @@ function visiblePlaces() {
   return out;
 }
 function buildMarkers() {
-  if (!markerLayer) return;
-  markerLayer.clearLayers();
+  if (!map) return;
+  poiMarkers.forEach((mk) => mk.remove());
+  poiMarkers = [];
   const active = state.activeId;
   for (const p of visiblePlaces()) {
     const m = missionById(p.mission);
     const isDone = done(p.mission);
     const cls = ["pin", m.secret ? "secret" : "everyday", p.mission === active && !isDone ? "active" : "", isDone ? "done" : ""].join(" ");
-    const html = `<div class="${cls}"><span>${GLYPH[m.glyph] || ""}</span></div>`;
-    const icon = L.divIcon({ className: "pin-marker", html, iconSize: [34, 34], iconAnchor: [17, 30] });
-    const marker = L.marker([p.lat, p.lng], { icon, zIndexOffset: p.mission === active ? 500 : 100 });
-    marker.on("click", (ev) => {
-      L.DomEvent.stop(ev);
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "pin-marker";
+    el.innerHTML = `<div class="${cls}"><span>${GLYPH[m.glyph] || ""}</span></div>`;
+    el.addEventListener("click", (ev) => {
+      ev.stopPropagation();
       if (state.busy) return;
       state.activeId = p.mission;
       state.dest = { lat: p.lat, lng: p.lng };
@@ -238,7 +256,8 @@ function buildMarkers() {
       renderHud();
       buildMarkers();
     });
-    marker.addTo(markerLayer);
+    const marker = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([p.lng, p.lat]).addTo(map);
+    poiMarkers.push(marker);
   }
 }
 
@@ -269,10 +288,12 @@ function step(dt) {
     state.lng += (vx * speed * dt) / mLng(state.lat);
     clamp();
     if (Math.abs(vx) > 0.25) state.facing = vx > 0 ? 1 : -1;
-    if (!state.userPanned) map.setView([state.lat, state.lng], map.getZoom(), { animate: false });
+    if (!state.userPanned) map.jumpTo({ center: [state.lng, state.lat] });
+    state.walked += speed * dt;
+    if (state.walked > 280) maybeEncounter();
     scheduleSave();
   }
-  player.setLatLng([state.lat, state.lng]);
+  player.setLngLat([state.lng, state.lat]);
   const sp = document.getElementById("sprite");
   if (sp) {
     sp.classList.toggle("walking", moving);
@@ -350,6 +371,8 @@ function renderHud() {
   document.getElementById("score-secret").textContent = countDone(secrets()) + "/" + secrets().length;
   document.getElementById("btn-sound").textContent = state.muted ? "🔇" : "🔔";
   document.getElementById("btn-hurry").classList.toggle("on", state.hurry);
+  const pocket = document.getElementById("pocket");
+  if (pocket) pocket.textContent = "¥" + state.yen + " · " + clockLabel();
 }
 
 function renderQuest() {
@@ -415,9 +438,9 @@ function rideTo(station) {
     state.lng = station.lng;
     state.userPanned = false;
     clamp();
-    player.setLatLng([state.lat, state.lng]);
-    const zoom = Math.max(17, Math.min(18, map.getZoom()));
-    map.setView([state.lat, state.lng], zoom, { animate: false });
+    player.setLngLat([state.lng, state.lat]);
+    const zoom = Math.max(16, Math.min(17.2, map.getZoom()));
+    map.jumpTo({ center: [state.lng, state.lat], zoom });
     anim.hidden = true;
     state.busy = false;
     save();
@@ -430,6 +453,91 @@ function rideTo(station) {
 }
 
 function placeById(id) { return PLACES.find((p) => p.id === id); }
+
+function wardFor(place) {
+  const blob = `${place.areaJa || ""} ${place.area || ""} ${place.nameJa || ""}`;
+  const table = [
+    [/渋谷|道玄坂|神南|スクランブル/, "Shibuya", "渋谷区"],
+    [/神宮前|原宿|代々木|明治/, "Shibuya", "渋谷区"],
+    [/新宿|神南/, "Shinjuku", "新宿区"],
+    [/下北沢/, "Setagaya", "世田谷区"],
+    [/豪徳寺|等々力/, "Setagaya", "世田谷区"],
+    [/目黒|池尻/, "Meguro", "目黒区"],
+    [/阿佐/, "Suginami", "杉並区"],
+    [/吉祥寺/, "Musashino", "武蔵野市"],
+    [/神楽坂/, "Shinjuku", "新宿区"],
+    [/谷中|千駄木/, "Taito", "台東区"],
+    [/虎ノ門|神谷|タワー|港/, "Minato", "港区"]
+  ];
+  for (const [re, en, ja] of table) if (re.test(blob)) return { en, ja };
+  return { en: "Tokyo", ja: "東京" };
+}
+
+function stampFrom(place, missionId) {
+  const ward = wardFor(place);
+  const station = nearestStation(place);
+  return {
+    missionId,
+    placeId: place.id,
+    name: place.name,
+    nameJa: place.nameJa,
+    area: place.areaJa || "",
+    ward: ward.en,
+    wardJa: ward.ja,
+    station: station.name,
+    stationJa: station.nameJa,
+    lat: place.lat,
+    lng: place.lng,
+    osm: place.osm,
+    at: Date.now()
+  };
+}
+
+function rememberStamp(place, missionId) {
+  state.stamps = state.stamps.filter((s) => s.missionId !== missionId);
+  state.stamps.push(stampFrom(place, missionId));
+}
+
+function backfillStamps() {
+  Object.keys(state.completed).forEach((id) => {
+    if (state.stamps.some((s) => s.missionId === id)) return;
+    const rec = state.completed[id];
+    const place = placeById(rec.placeId) || placesFor(id)[0];
+    if (place) rememberStamp(place, id);
+  });
+}
+
+function clockLabel() {
+  const h = state.hour;
+  const part = h < 11 ? "朝" : h < 16 ? "昼" : h < 19 ? "夕" : "夜";
+  return part + " " + h + ":00";
+}
+
+function applySky() {
+  const el = document.getElementById("map");
+  el.classList.toggle("evening", state.hour >= 17 && state.hour < 19);
+  el.classList.toggle("night", state.hour >= 19 || state.hour < 6);
+}
+
+function closedReason(mission) {
+  if (mission.id === "lion" && (state.hour < 11 || state.hour >= 22)) return "The kissaten is dark. Records start at 11.";
+  if (mission.id === "ramen" && state.hour < 11) return "The noren is still down. Ramen starts at 11.";
+  return "";
+}
+
+function maybeEncounter() {
+  state.walked = 0;
+  if (state.busy || Math.random() > 0.45) return;
+  state.busy = true;
+  const cat = Math.random() < 0.6;
+  document.getElementById("enc-title").textContent = cat ? "道の猫" : "迷子";
+  document.getElementById("enc-body").textContent = cat
+    ? "A cat is sitting in the middle of the lane, washing one ear."
+    : "Someone with a paper map is turning it upside down. They are looking for the station.";
+  document.getElementById("enc-yes").textContent = cat ? "なでる Pet" : "案内する Point the way";
+  document.getElementById("encounter").hidden = false;
+  document.getElementById("encounter").dataset.kind = cat ? "cat" : "tourist";
+}
 
 function showScene(mission) {
   const art = document.getElementById("scene-art");
@@ -446,14 +554,33 @@ function openCard(place) {
   state.busy = true;
   state.dest = null;
   clearTimeout(waitTimer);
-  showScene(missionById(place.mission));
+  cancelAnimationFrame(timingFrame);
+  const mission = missionById(place.mission);
+  const why = closedReason(mission);
+  showScene(mission);
+  if (why) {
+    document.getElementById("card-body").innerHTML = `<h3>${esc(mission.titleJa)}</h3><p>${esc(why)}</p>
+      <button class="btn primary" id="wait-open" style="width:100%">11時まで待つ Wait until 11</button>`;
+    document.getElementById("wait-open").onclick = () => { state.hour = 11; applySky(); openCard(place); };
+    return;
+  }
   renderCard();
 }
 function closeCard() {
+  const place = cardPlace;
+  const wasReward = cardMode === "reward";
+  if (locMap) { locMap.remove(); locMap = null; }
+  const card = document.querySelector("#scene .card");
+  if (card) card.classList.remove("loc");
+  cancelAnimationFrame(timingFrame);
   document.getElementById("scene").hidden = true;
   state.busy = false;
   cardPlace = null;
   clearTimeout(waitTimer);
+  if (wasReward && place && map) {
+    state.userPanned = false;
+    map.flyTo({ center: [place.lng, place.lat], zoom: 16.7, duration: 1300 });
+  }
 }
 function renderCard() {
   const m = missionById(cardPlace.mission);
@@ -469,17 +596,23 @@ function renderCard() {
     const placeLine = cardPlace.nameJa === m.titleJa
       ? esc(cardPlace.name)
       : `${esc(cardPlace.nameJa)} · ${esc(cardPlace.name)}`;
+    const stamp = state.stamps.find((s) => s.missionId === m.id) || stampFrom(cardPlace, m.id);
+    body.parentElement.classList.add("loc");
     body.innerHTML = `
       <div class="stamp">${m.secret ? "ひみつ" : "済"}</div>
-      <h3>${esc(m.titleJa)}</h3>
-      <p class="sub">${placeLine}</p>
+      <h3>${esc(stamp.nameJa)}</h3>
+      <p class="sub">${esc(stamp.name)}</p>
+      <p class="loc-line">${esc(stamp.wardJa)} ${esc(stamp.ward)} · ${esc(stamp.stationJa)} station</p>
+      <div id="loc-map" class="loc-map"></div>
+      <p class="osm-note">${esc(stamp.lat.toFixed(5))}, ${esc(stamp.lng.toFixed(5))} · OpenStreetMap ${esc(stamp.osm)} · +¥${EARN[m.id] ?? 170}</p>
+      <button class="btn primary" id="card-continue" style="width:100%;margin-top:8px">地図で見る On the map</button>
       <p>${esc(state.rewardLine || m.reward || "")}</p>
       ${tip}
-      ${extra}
-      <p class="osm-note">Real place · OpenStreetMap ${esc(cardPlace.osm)}</p>
-      <button class="btn primary" id="card-continue" style="width:100%;margin-top:8px">つづける Continue</button>`;
+      ${extra}`;
+    requestAnimationFrame(() => mountLocMap(cardPlace));
     return;
   }
+  body.parentElement.classList.remove("loc");
   const badge = m.secret ? '<span class="badge">ひみつ Local secret</span>' : "";
   let controls = "";
   if (m.kind === "choice") {
@@ -491,6 +624,11 @@ function renderCard() {
     const step = m.steps[ritual];
     controls = `<p>${esc(m.promptJa)}</p><p class="sub">${esc(m.prompt)}</p><div class="steps">${dots}</div>
       <button class="btn primary" data-ritual="1" style="width:100%">${esc(step.label)} · ${esc(step.sub)}</button>`;
+  } else if (m.kind === "timing") {
+    controls = `<p>${esc(m.promptJa || "ドアが閉まる")}</p><p class="sub">${esc(m.prompt || "Tap when the dot is in the door.")}</p>
+      <div class="timing"><div class="zone"></div><div class="dot" id="timing-dot"></div></div>
+      <button class="btn primary" id="timing-tap" style="width:100%">いま Now</button>`;
+    requestAnimationFrame(runTiming);
   } else if (m.kind === "wait") {
     controls = `<div class="light" id="light"></div><p id="wait-label">${esc(m.waitTextJa)}</p><p class="sub">${esc(m.waitText)}</p>
       <button class="btn primary" data-confirm="1" id="wait-btn" disabled style="width:100%">${esc(m.buttonJa)} ${esc(m.button)}</button>`;
@@ -509,19 +647,81 @@ function renderCard() {
     controls = `<p>${esc(m.promptJa || "")}</p><p class="sub">${esc(m.prompt || m.blurb)}</p>
       <button class="btn primary" data-confirm="1" style="width:100%">${esc(m.buttonJa || m.verbJa)} ${esc(m.button || m.verb)}</button>`;
   }
+  const cost = priceOf(m.id);
+  const costLine = cost ? `<p class="sub">¥${cost} · 所持 ¥${state.yen}</p>` : "";
   body.innerHTML = `
     <h3>${esc(m.titleJa)} ${badge}</h3>
     <p class="sub">${esc(cardPlace.nameJa)} · ${esc(cardPlace.name)}</p>
+    ${costLine}
     ${controls}
     <p class="osm-note">Real place · OpenStreetMap ${esc(cardPlace.osm)}</p>`;
 }
 
+function mountLocMap(place) {
+  const el = document.getElementById("loc-map");
+  if (!el || !place) return;
+  if (locMap) { locMap.remove(); locMap = null; }
+  locMap = new maplibregl.Map({
+    container: el,
+    style: "css/cartoon-style.json",
+    center: [place.lng, place.lat],
+    zoom: 14.6,
+    interactive: false,
+    attributionControl: false
+  });
+  const pin = document.createElement("div");
+  pin.className = "loc-pin";
+  new maplibregl.Marker({ element: pin, anchor: "center" }).setLngLat([place.lng, place.lat]).addTo(locMap);
+  locMap.on("load", () => locMap && locMap.resize());
+}
+
+function runTiming() {
+  const dot = document.getElementById("timing-dot");
+  const btn = document.getElementById("timing-tap");
+  if (!dot || !btn) return;
+  let t0 = performance.now();
+  const loop = (now) => {
+    const phase = ((now - t0) % 1600) / 1600;
+    const x = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
+    dot.style.left = (8 + x * 84) + "%";
+    dot.dataset.x = String(x);
+    timingFrame = requestAnimationFrame(loop);
+  };
+  timingFrame = requestAnimationFrame(loop);
+  btn.onclick = () => {
+    const x = Number(dot.dataset.x || 0);
+    if (x > 0.42 && x < 0.58) {
+      cancelAnimationFrame(timingFrame);
+      finish("You slipped through just as the doors kissed shut.");
+    } else {
+      showToast("The doors shut. Try the green gap again.");
+    }
+  };
+}
+
+function priceOf(id) { return PRICE[id] || 0; }
+
 function finish(detailLine) {
   const m = missionById(cardPlace.mission);
+  const cost = priceOf(m.id);
+  if (state.yen < cost) {
+    showToast("¥" + cost + " is needed. You have ¥" + state.yen + ".");
+    return;
+  }
+  state.yen -= cost;
+  state.yen += EARN[m.id] ?? 170;
+  state.hour = state.hour >= 22 ? 8 : state.hour + 1;
+  if (m.id === "shrine" && !state.toys.some((t) => t.id === "omamori")) state.toys.push(TOYS[0]);
+  if ((m.id === "onigiri" || m.id === "vending") && Math.random() < 0.55) {
+    const left = TOYS.filter((t) => !state.toys.some((owned) => owned.id === t.id));
+    if (left.length) state.toys.push(left[Math.floor(Math.random() * left.length)]);
+  }
+  applySky();
   const wasLastOfItsKind = m.secret
     ? countDone(secrets()) + 1 === secrets().length
     : countDone(everyday()) + 1 === everyday().length;
   state.completed[m.id] = { at: Date.now(), placeId: cardPlace.id, detail: detailLine || "" };
+  rememberStamp(cardPlace, m.id);
   state.rewardLine = detailLine || m.reward || "";
   if (state.activeId === m.id) {
     const n = nextIncomplete();
@@ -644,7 +844,42 @@ function bind() {
   document.getElementById("help-close").addEventListener("click", () => { document.getElementById("help").hidden = true; });
   document.getElementById("btn-sound").addEventListener("click", () => {
     state.muted = !state.muted;
+    if (state.muted) { clearTimeout(musicTimer); musicTimer = null; }
+    else startAmbient();
     renderHud(); save();
+  });
+  document.getElementById("btn-book").addEventListener("click", () => {
+    const box = document.getElementById("book-list");
+    const toys = state.toys.map((t) => t.nameJa).join(" · ");
+    document.getElementById("book-blurb").textContent = state.stamps.length + " places · " + (toys || "no charms yet");
+    box.innerHTML = state.stamps.map((s) => `<button class="train-row" data-stamp="${esc(s.missionId)}">
+      <span><b>${esc(s.nameJa)}</b><br><small style="color:var(--ink-soft)">${esc(s.wardJa)} · ${esc(s.stationJa)}</small></span>
+      <span class="dist">地図</span></button>`).join("") || "<p>No stamps yet. Finish a quest.</p>";
+    document.getElementById("book").hidden = false;
+  });
+  document.getElementById("book-close").addEventListener("click", () => { document.getElementById("book").hidden = true; });
+  document.getElementById("book-list").addEventListener("click", (e) => {
+    const row = e.target.closest("[data-stamp]");
+    if (!row) return;
+    const s = state.stamps.find((x) => x.missionId === row.dataset.stamp);
+    if (!s || !map) return;
+    document.getElementById("book").hidden = true;
+    state.userPanned = false;
+    map.flyTo({ center: [s.lng, s.lat], zoom: 16.7, duration: 1200 });
+  });
+  document.getElementById("enc-yes").addEventListener("click", () => {
+    const kind = document.getElementById("encounter").dataset.kind;
+    state.yen += kind === "cat" ? 40 : 80;
+    if (kind === "cat" && !state.toys.some((t) => t.id === "street-cat")) state.toys.push({ id: "street-cat", name: "Street hello", nameJa: "道の猫" });
+    document.getElementById("encounter").hidden = true;
+    state.busy = false;
+    chime();
+    renderHud();
+    save();
+  });
+  document.getElementById("enc-no").addEventListener("click", () => {
+    document.getElementById("encounter").hidden = true;
+    state.busy = false;
   });
   document.getElementById("btn-hurry").addEventListener("click", () => {
     state.hurry = !state.hurry;
@@ -658,7 +893,7 @@ function bind() {
   });
   document.getElementById("btn-recenter").addEventListener("click", () => {
     state.userPanned = false;
-    map.setView([state.lat, state.lng], map.getZoom(), { animate: true });
+    map.flyTo({ center: [state.lng, state.lat], zoom: map.getZoom(), duration: 700 });
   });
 
   document.getElementById("mini-chars").addEventListener("click", (e) => {
@@ -691,6 +926,7 @@ function bind() {
     if (!k) return;
     state.keys[k] = true;
     state.userPanned = false;
+    startAmbient();
     e.preventDefault();
   });
   window.addEventListener("keyup", (e) => {
@@ -728,7 +964,23 @@ function frame(ts) {
   requestAnimationFrame(frame);
 }
 
+function startAmbient() {
+  if (state.muted || musicTimer) return;
+  const ctx = audio();
+  if (!ctx) return;
+  const notes = [392, 440, 494, 523, 494, 440];
+  let i = 0;
+  const tick = () => {
+    if (state.muted) { musicTimer = null; return; }
+    tone(ctx, notes[i % notes.length], ctx.currentTime, 0.45, 0.01);
+    i += 1;
+    musicTimer = setTimeout(tick, 780);
+  };
+  tick();
+}
+
 function startGame(fromSave) {
+  backfillStamps();
   document.getElementById("select").hidden = true;
   document.getElementById("game").hidden = false;
   initMap();
@@ -797,8 +1049,13 @@ function bootSelect() {
       activeId: data.activeId || "scramble",
       muted: !!data.muted,
       introduced: true,
-      tab: data.tab || "daily"
+      tab: data.tab || "daily",
+      yen: data.yen ?? 800,
+      hour: data.hour ?? 9,
+      stamps: data.stamps || [],
+      toys: data.toys || []
     });
+    backfillStamps();
     startGame(true);
   });
 }
@@ -813,8 +1070,8 @@ window.TQ = {
   get state() { return state; },
   setPos(lat, lng) {
     state.lat = lat; state.lng = lng; state.dest = null; state.userPanned = false;
-    if (player) player.setLatLng([lat, lng]);
-    if (map) map.setView([lat, lng], map.getZoom(), { animate: false });
+    if (player) player.setLngLat([lng, lat]);
+    if (map) map.jumpTo({ center: [lng, lat] });
   },
   places: () => PLACES,
   missions: () => MISSIONS

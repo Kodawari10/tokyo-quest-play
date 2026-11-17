@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css">
   <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
@@ -35,6 +35,7 @@
       <div class="pill who">
         <strong id="who-name">Tokyo Quest</strong>
         <em id="area-label">渋谷 Shibuya</em>
+        <em id="pocket">¥800 · 9:00</em>
       </div>
       <div class="scores">
         <div class="pill score"><b id="score-daily">0/8</b><span>日常 daily</span></div>
@@ -42,6 +43,7 @@
       </div>
       <div class="hud-buttons">
         <button id="btn-quest" class="icon-btn" aria-label="Quests">📜</button>
+        <button id="btn-book" class="icon-btn" aria-label="Stamp book">📓</button>
         <button id="btn-train" class="icon-btn" aria-label="Train">🚃</button>
         <button id="btn-recenter" class="icon-btn" aria-label="Back to me">◎</button>
         <button id="btn-sound" class="icon-btn" aria-label="Sound">🔔</button>
@@ -92,6 +94,22 @@
         <p>ガタンゴトン…</p>
       </div>
     </div>
+    <div id="book" class="modal" hidden>
+      <div class="card">
+        <button id="book-close" class="x" aria-label="Close">×</button>
+        <h3>手帳 Stamp book</h3>
+        <p class="sub" id="book-blurb"></p>
+        <div id="book-list" class="train-list"></div>
+      </div>
+    </div>
+    <div id="encounter" class="modal" hidden>
+      <div class="card">
+        <h3 id="enc-title">にゃ</h3>
+        <p id="enc-body"></p>
+        <button id="enc-yes" class="btn primary" style="width:100%;margin-top:8px">なでる Pet</button>
+        <button id="enc-no" class="btn" style="width:100%;margin-top:8px">そのまま Walk on</button>
+      </div>
+    </div>
     <div id="train" class="modal" hidden>
       <div class="card">
         <button id="train-close" class="x" aria-label="Close">×</button>
@@ -111,14 +129,14 @@
         <p><b>電車</b> drops you at a real station so Gotokuji, Yanaka, or Kichijoji are a ride plus a short walk, not an hour of holding an arrow.</p>
         <p>Each quest opens a cartoon of that real place, with you in the picture. Then you step back onto the map and the stamp stays.</p>
         <p>You can cross blocks freely. The map underneath is real; the tiles are softened so the day feels like a picture book.</p>
-        <p>Map tiles © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, from tile.openstreetmap.org. Places were read from OpenStreetMap on 2026-11-17 and saved in the game, so play does not call Overpass. Data © OpenStreetMap contributors, ODbL.</p>
+        <p>The map is drawn from OpenStreetMap roads, parks, water, and buildings, in a pastel cartoon style. Tiles © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, © <a href="https://openmaptiles.org/">OpenMapTiles</a>, <a href="https://openfreemap.org">OpenFreeMap</a>. Places were read on 2026-11-17. Data © OpenStreetMap contributors, ODbL.</p>
         <p>Change who is walking. Stamps stay.</p>
         <div id="mini-chars" class="chars-mini"></div>
         <button id="btn-reset" class="btn">はじめから Reset this day</button>
       </div>
     </div>
   </section>
-  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="vendor/maplibre/maplibre-gl.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/world.js"></script>
   <script src="js/scenes.js"></script>
