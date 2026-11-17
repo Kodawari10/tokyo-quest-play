@@ -183,8 +183,8 @@ function initMap() {
   const icon = L.divIcon({
     className: "char-marker",
     html: spriteHtml(),
-    iconSize: [88, 104],
-    iconAnchor: [44, 98]
+    iconSize: [76, 76],
+    iconAnchor: [38, 68]
   });
   player = L.marker([state.lat, state.lng], { icon, zIndexOffset: 1000, interactive: false }).addTo(map);
   buildMarkers();
@@ -199,8 +199,8 @@ function paintCharacter() {
   player.setIcon(L.divIcon({
     className: "char-marker",
     html: spriteHtml(),
-    iconSize: [88, 104],
-    iconAnchor: [44, 98]
+    iconSize: [76, 76],
+    iconAnchor: [38, 68]
   }));
 }
 

@@ -10,10 +10,10 @@ function stage(id, top, bottom, inner) {
 }
 
 function hero(x, foot, scale) {
-  const s = scale || 0.92;
+  const s = (scale || 1) * 0.55;
   const raw = characterSvg(state.characterId) || "";
   const inner = raw.replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
-  const y = foot - 100 - 146 * s;
+  const y = foot - 148 * s;
   return `<g transform="translate(${x},${y}) scale(${s})"><g class="hero-bob">${inner}</g></g>`;
 }
 

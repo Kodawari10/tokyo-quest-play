@@ -80,7 +80,7 @@ button { cursor: pointer; }
   text-align: center;
   color: inherit;
 }
-.char-card svg { width: 92px; height: 112px; }
+.char-card svg { width: 104px; height: 104px; }
 .char-card .nm { font-weight: 700; }
 .char-card .ja { color: var(--ink-soft); font-size: 13px; }
 .char-card.selected {
@@ -98,7 +98,7 @@ button { cursor: pointer; }
   box-shadow: var(--shadow);
   min-height: 140px;
 }
-.preview svg { width: 110px; height: 136px; flex: none; }
+.preview svg { width: 128px; height: 128px; flex: none; }
 .preview h2 { margin: 0 0 4px; }
 .preview p { margin: 0; color: var(--ink-soft); }
 .actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
@@ -135,7 +135,7 @@ button { cursor: pointer; }
 .leaflet-bar a { border-radius: 12px; color: var(--ink); }
 .leaflet-top.leaflet-right { top: 72px; }
 .char-marker, .pin-marker { background: none !important; border: none !important; }
-.sprite { width: 88px; height: 104px; transform-origin: 50% 80%; }
+.sprite { width: 76px; height: 76px; transform-origin: 50% 80%; }
 .sprite .bob { width: 100%; height: 100%; filter: drop-shadow(0 3px 0 rgba(255,255,255,.85)) drop-shadow(0 8px 6px rgba(80,50,60,.25)); animation: idle-bob 2.2s ease-in-out infinite; }
 .sprite.walking .bob { animation: walk-bob 0.36s ease-in-out infinite; }
 .sprite svg { width: 100%; height: 100%; display: block; }
@@ -379,7 +379,7 @@ button { cursor: pointer; }
 .chars-mini { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
 .chars-mini button { width: 48px; height: 56px; border-radius: 12px; border: 2px solid transparent; background: white; padding: 0; }
 .chars-mini button.on { border-color: var(--pink-deep); }
-.chars-mini svg { width: 40px; height: 50px; }
+.chars-mini svg { width: 40px; height: 40px; }
 .help p { margin: 8px 0; }
 .help a { color: #8a4d64; }
 
@@ -388,7 +388,7 @@ button { cursor: pointer; }
   .who strong { font-size: 14px; }
   .icon-btn { width: 36px; height: 36px; border-radius: 12px; }
   .toast { bottom: 230px; max-width: calc(100% - 28px); }
-  .char-card svg { width: 76px; height: 92px; }
+  .char-card svg { width: 88px; height: 88px; }
   .brand h1 { font-size: 34px; }
   #select { padding-top: 16px; }
   .bubble { max-width: calc(100% - 28px); }

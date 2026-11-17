@@ -1,4 +1,4 @@
-/* Original chibi sprites for Tokyo Quest. Not based on any copyrighted character. */
+/* Original portraits for Tokyo Quest. Animals are gentle face studies, not copies of any character. */
 const CHARACTERS = [
   {
     id: "hana",
@@ -16,25 +16,25 @@ const CHARACTERS = [
     id: "mikan",
     name: "Mikan",
     nameJa: "みかん",
-    blurb: "An orange cat who follows the warmest patch of sun."
+    blurb: "An orange tabby who follows the warmest patch of sun."
   },
   {
     id: "mochi",
     name: "Mochi",
     nameJa: "もち",
-    blurb: "A shiba with a snack radar and a red bandana."
+    blurb: "A red shiba with a snack radar."
   },
   {
     id: "pao",
     name: "Pao",
     nameJa: "パオ",
-    blurb: "A round panda. Professional picnic planner."
+    blurb: "A giant panda. Professional picnic planner."
   },
   {
     id: "usagi",
     name: "Usagi",
     nameJa: "うさぎ",
-    blurb: "A bunny with a bow, always first to hear the train."
+    blurb: "A rabbit, always first to hear the train."
   },
   {
     id: "pon",
@@ -45,209 +45,191 @@ const CHARACTERS = [
 ];
 
 function svgWrap(inner) {
-  return `<svg viewBox="0 0 120 150" aria-hidden="true">${inner}</svg>`;
+  return `<svg viewBox="0 0 160 160" aria-hidden="true">${inner}</svg>`;
 }
 
-function eyes(y) {
+function humanEyes(y) {
   return `<g class="blink-eye">
-    <ellipse cx="45" cy="${y}" rx="10" ry="11.5" fill="#fff"/>
-    <ellipse cx="75" cy="${y}" rx="10" ry="11.5" fill="#fff"/>
-    <ellipse cx="46.2" cy="${y + 1.6}" rx="5.4" ry="6.4" fill="#4a3942"/>
-    <ellipse cx="76.2" cy="${y + 1.6}" rx="5.4" ry="6.4" fill="#4a3942"/>
-    <circle cx="48.6" cy="${y - 1.6}" r="2.3" fill="#fff"/>
-    <circle cx="78.6" cy="${y - 1.6}" r="2.3" fill="#fff"/>
-    <circle cx="43.4" cy="${y + 4}" r="1.05" fill="#fff"/>
-    <circle cx="73.4" cy="${y + 4}" r="1.05" fill="#fff"/>
+    <ellipse cx="58" cy="${y}" rx="11" ry="12.5" fill="#fff"/>
+    <ellipse cx="102" cy="${y}" rx="11" ry="12.5" fill="#fff"/>
+    <ellipse cx="60" cy="${y + 1.5}" rx="6" ry="7" fill="#4a3942"/>
+    <ellipse cx="104" cy="${y + 1.5}" rx="6" ry="7" fill="#4a3942"/>
+    <circle cx="63" cy="${y - 2}" r="2.4" fill="#fff"/>
+    <circle cx="107" cy="${y - 2}" r="2.4" fill="#fff"/>
+    <circle cx="56" cy="${y + 4}" r="1.1" fill="#fff"/>
+    <circle cx="100" cy="${y + 4}" r="1.1" fill="#fff"/>
   </g>`;
 }
 
-function blush(y) {
-  return `<ellipse cx="32" cy="${y}" rx="7.5" ry="3.8" fill="#ff8eab" opacity=".82"/>
-    <ellipse cx="88" cy="${y}" rx="7.5" ry="3.8" fill="#ff8eab" opacity=".82"/>`;
-}
-
-function smile(y) {
-  return `<path d="M54 ${y}c2.4 3.4 9.6 3.4 12 0" stroke="#e08a8a" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
-}
-
-function shadow() {
-  return `<ellipse cx="64" cy="144" rx="28" ry="5.5" fill="#e7c9bf" opacity=".5"/>`;
-}
-
-function animalEyes(x, y, iris) {
-  const c = iris || "#3a2a24";
-  return `<g class="blink-eye">
-    <ellipse cx="${x}" cy="${y}" rx="4.6" ry="5.2" fill="#fff"/>
-    <ellipse cx="${x + 0.6}" cy="${y + 0.7}" rx="2.5" ry="2.9" fill="${c}"/>
-    <circle cx="${x + 1.5}" cy="${y - 0.8}" r="1.15" fill="#fff"/>
-  </g>`;
+function furTicks(strokes, color) {
+  return strokes.map(([x, y, d]) =>
+    `<path d="M${x} ${y} q${d} 2 ${d * 0.15} 8" stroke="${color}" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".7"/>`
+  ).join("");
 }
 
 const SPRITES = {
   hana: svgWrap(`
-    ${shadow()}
-    <path d="M44 112c2 12 6 18 16 18s14-6 16-18c-6 4-10 4-16 4s-10 0-16-4z" fill="#ff8fb8"/>
-    <rect x="50" y="100" width="20" height="16" rx="8" fill="#ffe08a"/>
-    <ellipse cx="40" cy="108" rx="6" ry="5" fill="#ffe3cf"/>
-    <ellipse cx="80" cy="108" rx="6" ry="5" fill="#ffe3cf"/>
-    <ellipse cx="52" cy="132" rx="7" ry="3.6" fill="#fff"/>
-    <ellipse cx="70" cy="132" rx="7" ry="3.6" fill="#fff"/>
-    <ellipse cx="60" cy="64" rx="40" ry="36" fill="#ff9ec4"/>
-    <circle cx="60" cy="68" r="32" fill="#ffe3cf"/>
-    <ellipse cx="60" cy="46" rx="28" ry="14" fill="#ff8fb3"/>
-    <ellipse cx="34" cy="62" rx="10" ry="16" fill="#ff8fb3"/>
-    <ellipse cx="86" cy="62" rx="10" ry="16" fill="#ff8fb3"/>
-    ${eyes(66)}
-    ${blush(78)}
-    ${smile(84)}
-    <g transform="translate(92,42)">
-      <circle r="7" fill="#ff6b9d"/>
-      <circle r="3" fill="#ffe08a"/>
+    <ellipse cx="80" cy="148" rx="36" ry="7" fill="#e7c9bf" opacity=".45"/>
+    <path d="M52 118c4 16 14 26 28 26s24-10 28-26c-10 8-18 10-28 10s-18-2-28-10z" fill="#ffe08a"/>
+    <ellipse cx="80" cy="78" rx="52" ry="48" fill="#ff9ec4"/>
+    <circle cx="80" cy="84" r="42" fill="#ffe3cf"/>
+    <ellipse cx="80" cy="52" rx="36" ry="18" fill="#ff8fb3"/>
+    <ellipse cx="46" cy="74" rx="12" ry="20" fill="#ff8fb3"/>
+    <ellipse cx="114" cy="74" rx="12" ry="20" fill="#ff8fb3"/>
+    ${humanEyes(82)}
+    <ellipse cx="48" cy="98" rx="8" ry="4" fill="#ff8eab" opacity=".8"/>
+    <ellipse cx="112" cy="98" rx="8" ry="4" fill="#ff8eab" opacity=".8"/>
+    <path d="M72 104c3 4 13 4 16 0" stroke="#e08a8a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <g transform="translate(118,48)">
+      <circle r="8" fill="#ff6b9d"/>
+      <circle r="3.2" fill="#ffe08a"/>
     </g>
   `),
   ren: svgWrap(`
-    ${shadow()}
-    <circle cx="34" cy="108" r="10" fill="#f0a07a"/>
-    <path d="M46 108c1 14 6 20 14 20s13-6 14-20c-5 4-9 5-14 5s-9-1-14-5z" fill="#5e6d8d"/>
-    <rect x="48" y="96" width="24" height="18" rx="9" fill="#8fd0f2"/>
-    <rect x="54" y="102" width="12" height="8" rx="3" fill="#d9f1fb"/>
-    <ellipse cx="50" cy="132" rx="8" ry="4" fill="#3e4a62"/>
-    <ellipse cx="72" cy="132" rx="8" ry="4" fill="#3e4a62"/>
-    <ellipse cx="60" cy="62" rx="38" ry="34" fill="#6b4636"/>
-    <circle cx="60" cy="66" r="31" fill="#ffe3cf"/>
-    <ellipse cx="60" cy="44" rx="26" ry="13" fill="#6b4636"/>
-    <ellipse cx="36" cy="58" rx="9" ry="14" fill="#6b4636"/>
-    <ellipse cx="84" cy="58" rx="9" ry="14" fill="#6b4636"/>
-    ${eyes(64)}
-    ${blush(76)}
-    ${smile(82)}
+    <ellipse cx="80" cy="148" rx="36" ry="7" fill="#e7c9bf" opacity=".45"/>
+    <path d="M54 116c6 18 14 28 26 28s20-10 26-28c-10 8-18 10-26 10s-16-2-26-10z" fill="#8fd0f2"/>
+    <ellipse cx="80" cy="76" rx="50" ry="46" fill="#6b4636"/>
+    <circle cx="80" cy="84" r="40" fill="#ffe3cf"/>
+    <ellipse cx="80" cy="52" rx="34" ry="16" fill="#6b4636"/>
+    <ellipse cx="48" cy="72" rx="11" ry="18" fill="#6b4636"/>
+    <ellipse cx="112" cy="72" rx="11" ry="18" fill="#6b4636"/>
+    ${humanEyes(82)}
+    <ellipse cx="50" cy="98" rx="8" ry="4" fill="#ff8eab" opacity=".8"/>
+    <ellipse cx="110" cy="98" rx="8" ry="4" fill="#ff8eab" opacity=".8"/>
+    <path d="M72 104c3 4 13 4 16 0" stroke="#e08a8a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
   `),
   mikan: svgWrap(`
-    ${shadow()}
-    <path d="M22 108c-16-6-18-28-4-34 10-4 18 6 16 16-2 8-6 16-12 18z" fill="#e8873a"/>
-    <path d="M18 86c2 6 2 10 0 14M24 82c2 7 1 12-1 16" stroke="#c46228" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <ellipse cx="58" cy="96" rx="28" ry="12" fill="#c96a2e" opacity=".35"/>
-    <ellipse cx="62" cy="104" rx="32" ry="18" fill="#f0a04a"/>
-    <ellipse cx="66" cy="112" rx="18" ry="10" fill="#fff6ee"/>
-    <path d="M46 92c6-8 14-6 16 2M58 88c4-8 12-4 10 4" stroke="#c46228" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M40 112c2 16 6 26 4 28-6-2-10-12-8-22z" fill="#e8873a"/>
-    <path d="M52 114c2 16 4 24 2 26-6 0-8-10-6-22z" fill="#f0a04a"/>
-    <path d="M78 108c1 16 4 26 2 28-6-1-8-12-6-24z" fill="#f0a04a"/>
-    <path d="M90 106c2 16 5 26 3 28-6 0-8-12-6-24z" fill="#e8873a"/>
-    <ellipse cx="42" cy="138" rx="6" ry="3" fill="#fff6ee"/>
-    <ellipse cx="54" cy="138" rx="5" ry="3" fill="#fff6ee"/>
-    <ellipse cx="80" cy="136" rx="5" ry="3" fill="#fff6ee"/>
-    <ellipse cx="92" cy="134" rx="5" ry="3" fill="#fff6ee"/>
-    <ellipse cx="96" cy="78" rx="18" ry="15" fill="#f0a04a"/>
-    <path d="M84 68l6-16 8 12z" fill="#f0a04a"/>
-    <path d="M108 66l6-14-2 16z" fill="#f0a04a"/>
-    <path d="M86 66l5-10 5 8z" fill="#ffd0c4"/>
-    <path d="M108 64l4-8 2 10z" fill="#ffd0c4"/>
-    <path d="M90 70c3 4 6 4 8 0M100 68c2 4 5 4 7 0" stroke="#c46228" stroke-width="1.4" fill="none"/>
-    <ellipse cx="106" cy="84" rx="9" ry="6" fill="#fff6ee"/>
-    ${animalEyes(98, 76, "#c47a20")}
-    <ellipse cx="112" cy="84" rx="2.2" ry="1.6" fill="#e09090"/>
-    <path d="M112 86 v3" stroke="#e09090" stroke-width="1"/>
-    <path d="M108 86h12M106 90h10M110 82h10" stroke="#c9b2a4" stroke-width="0.8" stroke-linecap="round"/>
-    <ellipse cx="90" cy="84" rx="4" ry="2.2" fill="#ffb3c4" opacity=".7"/>
+    <ellipse cx="80" cy="150" rx="40" ry="6" fill="#e7c9bf" opacity=".35"/>
+    <path d="M46 118c8 18 18 28 34 28s26-10 34-28c-12 10-22 12-34 12s-22-2-34-12z" fill="#f6c48a"/>
+    <path d="M38 62l18 28-22 6z" fill="#e08a3a"/>
+    <path d="M122 62l-18 28 22 6z" fill="#e08a3a"/>
+    <path d="M46 66l12 18-14 4z" fill="#f3b7a4"/>
+    <path d="M114 66l-12 18 14 4z" fill="#f3b7a4"/>
+    <ellipse cx="80" cy="96" rx="52" ry="46" fill="#c96a2c"/>
+    <ellipse cx="80" cy="98" rx="48" ry="42" fill="#f0a04c"/>
+    <ellipse cx="80" cy="86" rx="28" ry="16" fill="#e07a30" opacity=".35"/>
+    ${furTicks([[58, 78, 5], [74, 70, 3], [92, 70, -3], [108, 80, -5], [50, 98, 6], [112, 98, -6]], "#a35220")}
+    <path d="M60 74c10 7 16 4 18-3M78 68c7 8 14 5 16-3" stroke="#a35220" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <ellipse cx="80" cy="112" rx="22" ry="14" fill="#fff6ee"/>
+    <ellipse cx="62" cy="104" rx="10" ry="7" fill="#fff6ee" opacity=".85"/>
+    <ellipse cx="98" cy="104" rx="10" ry="7" fill="#fff6ee" opacity=".85"/>
+    <g class="blink-eye">
+      <ellipse cx="62" cy="96" rx="7.4" ry="5.2" fill="#e8b04a"/>
+      <ellipse cx="98" cy="96" rx="7.4" ry="5.2" fill="#e8b04a"/>
+      <ellipse cx="62" cy="96.2" rx="1.5" ry="4.1" fill="#24160e"/>
+      <ellipse cx="98" cy="96.2" rx="1.5" ry="4.1" fill="#24160e"/>
+      <circle cx="64.2" cy="94" r="1.3" fill="#fff"/>
+      <circle cx="100.2" cy="94" r="1.3" fill="#fff"/>
+    </g>
+    <path d="M80 108c-3 2-5 5-5 6 3 2 7 2 10 0 0-1-2-4-5-6z" fill="#e89aaa"/>
+    <path d="M80 114c-2 3-2 5 0 6" stroke="#c47078" stroke-width="1.2" fill="none"/>
+    <path d="M72 110h-26M74 115h-24M76 106h-22" stroke="#8a7568" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M88 110h26M86 115h24M84 106h22" stroke="#8a7568" stroke-width="1.3" stroke-linecap="round"/>
   `),
   mochi: svgWrap(`
-    ${shadow()}
-    <path d="M34 78c-16-2-22-20-8-28 8-4 16 2 18 10 1 6-2 14-10 18z" fill="#e07a32"/>
-    <path d="M30 64c4 4 6 8 4 12" stroke="#fff8f0" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <ellipse cx="62" cy="100" rx="32" ry="18" fill="#e07a32"/>
-    <ellipse cx="58" cy="92" rx="22" ry="8" fill="#c4682e" opacity=".45"/>
-    <ellipse cx="70" cy="108" rx="16" ry="10" fill="#fff8f0"/>
-    <path d="M48 86 q6 4 4 10" stroke="#b85a28" stroke-width="1.3" fill="none" opacity=".6"/>
-    <path d="M40 108c2 18 6 28 4 30-7-2-10-14-8-26z" fill="#e07a32"/>
-    <path d="M52 112c1 16 4 24 2 26-6 0-8-12-6-24z" fill="#c4682e"/>
-    <path d="M78 106c1 18 4 28 2 30-6-1-8-14-6-26z" fill="#e07a32"/>
-    <path d="M90 104c2 18 5 28 3 30-6 0-9-14-7-28z" fill="#c4682e"/>
-    <ellipse cx="42" cy="138" rx="6" ry="3.2" fill="#fff8f0"/>
-    <ellipse cx="54" cy="138" rx="5" ry="3" fill="#fff8f0"/>
-    <ellipse cx="80" cy="136" rx="5" ry="3" fill="#fff8f0"/>
-    <ellipse cx="92" cy="134" rx="5" ry="3" fill="#fff8f0"/>
-    <path d="M78 92c8-6 18-4 20 4-8 2-16 0-20-4z" fill="#e23b3b"/>
-    <ellipse cx="98" cy="74" rx="16" ry="14" fill="#e07a32"/>
-    <path d="M88 64l4-14 10 10z" fill="#e07a32"/>
-    <path d="M108 62l8-12-2 14z" fill="#e07a32"/>
-    <path d="M90 62l3-8 6 6z" fill="#fff8f0"/>
-    <path d="M108 60l5-7 2 8z" fill="#fff8f0"/>
-    <ellipse cx="108" cy="80" rx="10" ry="7" fill="#fff8f0"/>
-    ${animalEyes(96, 72)}
-    <ellipse cx="114" cy="80" rx="2.6" ry="1.8" fill="#2c2420"/>
-    <ellipse cx="88" cy="80" rx="4" ry="2.2" fill="#ffb3c4" opacity=".75"/>
+    <ellipse cx="80" cy="150" rx="40" ry="6" fill="#e7c9bf" opacity=".35"/>
+    <path d="M48 122c10 16 18 24 32 24s22-8 32-24c-12 8-22 10-32 10s-20-2-32-10z" fill="#fff8f0"/>
+    <path d="M42 58l16 26-20 4z" fill="#d4723a"/>
+    <path d="M118 58l-16 26 20 4z" fill="#d4723a"/>
+    <path d="M48 62l10 16-12 3z" fill="#fff8f0"/>
+    <path d="M112 62l-10 16 12 3z" fill="#fff8f0"/>
+    <ellipse cx="80" cy="98" rx="50" ry="44" fill="#b85a28"/>
+    <ellipse cx="80" cy="100" rx="46" ry="40" fill="#e07a32"/>
+    <ellipse cx="80" cy="84" rx="24" ry="12" fill="#c4682e" opacity=".4"/>
+    ${furTicks([[58, 82, 4], [74, 74, 2], [90, 74, -2], [106, 84, -4], [52, 100, 5]], "#9a4a1c")}
+    <ellipse cx="58" cy="108" rx="14" ry="12" fill="#fff8f0"/>
+    <ellipse cx="102" cy="108" rx="14" ry="12" fill="#fff8f0"/>
+    <ellipse cx="80" cy="116" rx="20" ry="14" fill="#fff8f0"/>
+    <g class="blink-eye">
+      <ellipse cx="63" cy="96" rx="5.4" ry="4" fill="#fff6ee"/>
+      <ellipse cx="97" cy="96" rx="5.4" ry="4" fill="#fff6ee"/>
+      <ellipse cx="64" cy="96.2" rx="3.4" ry="3.5" fill="#4a2c1c"/>
+      <ellipse cx="98" cy="96.2" rx="3.4" ry="3.5" fill="#4a2c1c"/>
+      <ellipse cx="64.2" cy="96.6" rx="1.8" ry="2.2" fill="#1a100c"/>
+      <ellipse cx="98.2" cy="96.6" rx="1.8" ry="2.2" fill="#1a100c"/>
+      <circle cx="65.4" cy="94.8" r="0.9" fill="#fff"/>
+      <circle cx="99.4" cy="94.8" r="0.9" fill="#fff"/>
+    </g>
+    <ellipse cx="80" cy="114" rx="5" ry="3.4" fill="#2c2420"/>
+    <path d="M74 116c2 3 4 4 6 4s4-1 6-4" stroke="#2c2420" stroke-width="1.1" fill="none"/>
+    <circle cx="70" cy="118" r="1.1" fill="#2c2420"/>
+    <circle cx="90" cy="118" r="1.1" fill="#2c2420"/>
+    <path d="M70 116h-18M72 120h-16M90 116h18M88 120h16" stroke="#b7a898" stroke-width="1.15" stroke-linecap="round"/>
   `),
   pao: svgWrap(`
-    ${shadow()}
-    <ellipse cx="62" cy="104" rx="34" ry="18" fill="#f7f4ef"/>
-    <path d="M40 92c8-10 28-14 36-4 4 6-8 10-18 12-10 1-16-2-18-8z" fill="#2c2c2c"/>
-    <path d="M36 108c0 18 4 28 2 30-8-2-10-14-8-28z" fill="#2c2c2c"/>
-    <path d="M50 112c0 16 3 24 1 26-7 0-8-12-6-24z" fill="#2c2c2c"/>
-    <path d="M78 106c1 18 4 28 2 30-7-1-9-14-7-28z" fill="#2c2c2c"/>
-    <path d="M92 102c2 18 6 30 3 32-8 0-10-16-8-30z" fill="#2c2c2c"/>
-    <ellipse cx="98" cy="78" rx="18" ry="16" fill="#f7f4ef"/>
-    <circle cx="88" cy="64" r="7" fill="#2c2c2c"/>
-    <circle cx="110" cy="62" r="7" fill="#2c2c2c"/>
-    <ellipse cx="92" cy="78" rx="7" ry="8" fill="#2c2c2c"/>
-    <ellipse cx="106" cy="76" rx="6.5" ry="7.5" fill="#2c2c2c"/>
+    <ellipse cx="80" cy="150" rx="40" ry="6" fill="#e7c9bf" opacity=".35"/>
+    <ellipse cx="80" cy="128" rx="36" ry="16" fill="#f4f1ec"/>
+    <ellipse cx="80" cy="92" rx="48" ry="44" fill="#f7f4ef"/>
+    <ellipse cx="80" cy="78" rx="22" ry="10" fill="#e7e2dc" opacity=".55"/>
+    <circle cx="42" cy="52" r="14" fill="#1e1e1e"/>
+    <circle cx="118" cy="52" r="14" fill="#1e1e1e"/>
+    <ellipse cx="58" cy="96" rx="16" ry="18" fill="#1e1e1e"/>
+    <ellipse cx="102" cy="96" rx="16" ry="18" fill="#1e1e1e"/>
+    <ellipse cx="80" cy="118" rx="16" ry="12" fill="#f7f4ef"/>
+    <ellipse cx="80" cy="112" rx="7" ry="5" fill="#f7f4ef"/>
+    <ellipse cx="80" cy="116" rx="4.2" ry="3" fill="#1e1e1e"/>
     <g class="blink-eye">
-      <ellipse cx="92" cy="78" rx="2.6" ry="3" fill="#4a3a32"/>
-      <ellipse cx="106" cy="76" rx="2.4" ry="2.8" fill="#4a3a32"/>
-      <circle cx="93" cy="77" r="0.9" fill="#fff"/>
-      <circle cx="107" cy="75" r="0.9" fill="#fff"/>
+      <ellipse cx="58" cy="98" rx="3.4" ry="3.6" fill="#3a2e28"/>
+      <ellipse cx="102" cy="98" rx="3.4" ry="3.6" fill="#3a2e28"/>
+      <circle cx="59.2" cy="96.8" r="1" fill="#fff"/>
+      <circle cx="103.2" cy="96.8" r="1" fill="#fff"/>
     </g>
-    <ellipse cx="112" cy="86" rx="5" ry="3.4" fill="#f7f4ef"/>
-    <ellipse cx="116" cy="86" rx="2" ry="1.5" fill="#2c2c2c"/>
-    <ellipse cx="84" cy="88" rx="3.5" ry="2" fill="#ffb3c4" opacity=".7"/>
+    <path d="M74 122c2 2 4 3 6 3s4-1 6-3" stroke="#c9b8b0" stroke-width="1.2" fill="none" stroke-linecap="round"/>
   `),
   usagi: svgWrap(`
-    ${shadow()}
-    <ellipse cx="30" cy="108" rx="10" ry="8" fill="#fff"/>
-    <ellipse cx="28" cy="106" rx="6" ry="5" fill="#fff6f8"/>
-    <ellipse cx="48" cy="112" rx="16" ry="14" fill="#f3eee8"/>
-    <ellipse cx="66" cy="102" rx="28" ry="16" fill="#fff"/>
-    <ellipse cx="62" cy="96" rx="18" ry="7" fill="#efe8e2" opacity=".8"/>
-    <path d="M46 112c2 16 8 26 6 28-8-2-12-12-10-24z" fill="#f7f4ef"/>
-    <path d="M78 108c1 16 4 26 2 28-6 0-8-12-6-24z" fill="#fff"/>
-    <path d="M90 104c2 16 4 26 2 28-6 0-8-12-6-26z" fill="#f7f4ef"/>
-    <ellipse cx="48" cy="138" rx="7" ry="3.4" fill="#ffd0e0"/>
-    <ellipse cx="80" cy="136" rx="4.5" ry="2.6" fill="#ffd0e0"/>
-    <ellipse cx="92" cy="134" rx="4.5" ry="2.6" fill="#ffd0e0"/>
-    <ellipse cx="98" cy="78" rx="16" ry="14" fill="#fff"/>
-    <path d="M90 62c2-36 8-48 12-50 5 8 6 32 4 50z" fill="#fff"/>
-    <path d="M108 60c2-34 6-44 8-46 4 8 4 30 2 46z" fill="#fff"/>
-    <path d="M94 60c1-28 4-36 6-38 2 8 2 24 1 38z" fill="#ffd0e0"/>
-    <path d="M110 58c1-26 3-34 5-36 2 8 2 22 1 36z" fill="#ffd0e0"/>
-    <path d="M112 48c6 2 8 8 4 10-4-1-6-4-4-10z" fill="#ff8fb8"/>
-    ${animalEyes(96, 76, "#5c4652")}
-    <ellipse cx="110" cy="84" rx="8" ry="5" fill="#fff"/>
-    <path d="M112 82c2 2 4 2 5 0" stroke="#e09090" stroke-width="1.3" fill="none"/>
-    <ellipse cx="116" cy="83" rx="1.8" ry="1.3" fill="#e09090"/>
-    <path d="M114 86h10M112 89h8" stroke="#e7d0c8" stroke-width="0.8" stroke-linecap="round"/>
-    <ellipse cx="86" cy="82" rx="3.6" ry="2" fill="#ffb3c4" opacity=".75"/>
+    <ellipse cx="80" cy="152" rx="36" ry="6" fill="#e7c9bf" opacity=".3"/>
+    <path d="M58 124c8 14 14 20 22 20s14-6 22-20c-8 6-14 8-22 8s-14-2-22-8z" fill="#fff"/>
+    <path d="M58 36c2-28 10-34 14-34 6 6 8 24 6 40z" fill="#f7f4ef"/>
+    <path d="M102 36c-2-28-10-34-14-34-6 6-8 24-6 40z" fill="#f4f0ea"/>
+    <path d="M64 34c2-20 6-26 8-26 3 6 4 18 2 30z" fill="#f3c2cc"/>
+    <path d="M96 34c-2-20-6-26-8-26-3 6-4 18-2 30z" fill="#f3c2cc"/>
+    <ellipse cx="80" cy="96" rx="46" ry="40" fill="#e7e0d8"/>
+    <ellipse cx="80" cy="98" rx="42" ry="36" fill="#fff"/>
+    <ellipse cx="80" cy="84" rx="22" ry="12" fill="#f3eee8" opacity=".9"/>
+    <ellipse cx="56" cy="108" rx="12" ry="9" fill="#fff"/>
+    <ellipse cx="104" cy="108" rx="12" ry="9" fill="#fff"/>
+    <g class="blink-eye">
+      <ellipse cx="62" cy="98" rx="6.2" ry="6.6" fill="#f4e6d4"/>
+      <ellipse cx="98" cy="98" rx="6.2" ry="6.6" fill="#f4e6d4"/>
+      <ellipse cx="62" cy="98.2" rx="4.6" ry="5" fill="#a56b3c"/>
+      <ellipse cx="98" cy="98.2" rx="4.6" ry="5" fill="#a56b3c"/>
+      <ellipse cx="62" cy="98.6" rx="2.3" ry="2.8" fill="#2a1c12"/>
+      <ellipse cx="98" cy="98.6" rx="2.3" ry="2.8" fill="#2a1c12"/>
+      <circle cx="63.6" cy="96.2" r="1.2" fill="#fff"/>
+      <circle cx="99.6" cy="96.2" r="1.2" fill="#fff"/>
+    </g>
+    <path d="M80 108c-2.4 2-4 4.2-4 5.2 2.4 2 5.6 2 8 0 0-1-1.6-3.2-4-5.2z" fill="#e7a0aa"/>
+    <path d="M80 112 v5" stroke="#e09098" stroke-width="1"/>
+    <path d="M76 114c2 3 6 3 8 0" stroke="#e09098" stroke-width="1" fill="none"/>
+    <path d="M72 112h-22M74 117h-20M88 112h22M86 117h20" stroke="#c9b8b0" stroke-width="1.2" stroke-linecap="round"/>
   `),
   pon: svgWrap(`
-    ${shadow()}
-    <path d="M18 100c-8-18 6-34 20-28 8 4 10 16 6 26-4 6-16 10-26 2z" fill="#7a6248"/>
-    <path d="M22 84c4 6 6 10 4 16M30 80c3 7 3 12 0 18" stroke="#d2c0a4" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>
-    <ellipse cx="24" cy="108" rx="6" ry="5" fill="#4a3428"/>
-    <ellipse cx="60" cy="102" rx="32" ry="18" fill="#9a7a52"/>
-    <ellipse cx="56" cy="94" rx="20" ry="7" fill="#c4a574" opacity=".55"/>
-    <path d="M48 96c4 5 8 4 10-1M62 92c3 6 8 5 8-1" stroke="#5c4030" stroke-width="1.2" fill="none" opacity=".45"/>
-    <ellipse cx="72" cy="110" rx="12" ry="8" fill="#efe2d0"/>
-    <path d="M40 112c2 16 6 26 4 28-8-2-10-14-8-26z" fill="#3d2a22"/>
-    <path d="M52 114c1 14 4 22 2 24-6 0-8-10-6-22z" fill="#5a4030"/>
-    <path d="M78 108c1 16 5 26 3 28-7-1-9-14-7-26z" fill="#3d2a22"/>
-    <path d="M90 104c2 16 5 26 3 28-7 0-9-14-7-26z" fill="#5a4030"/>
-    <ellipse cx="96" cy="76" rx="16" ry="13" fill="#9a7a52"/>
-    <path d="M86 66c2-8 8-10 10-4z" fill="#7a6248"/>
-    <path d="M104 64c4-8 10-8 10-2z" fill="#7a6248"/>
-    <ellipse cx="108" cy="82" rx="9" ry="6" fill="#efe2d0"/>
-    <path d="M86 72c10 6 18 8 24 4-8 4-16 4-24-4z" fill="#3d2a22" opacity=".85"/>
-    ${animalEyes(96, 74)}
-    <ellipse cx="114" cy="82" rx="2.4" ry="1.6" fill="#2c2420"/>
-    <ellipse cx="84" cy="82" rx="3.4" ry="2" fill="#e7b2a4" opacity=".55"/>
+    <ellipse cx="80" cy="150" rx="40" ry="6" fill="#e7c9bf" opacity=".35"/>
+    <path d="M50 124c8 16 16 22 30 22s22-6 30-22c-10 8-20 10-30 10s-20-2-30-10z" fill="#efe2d0"/>
+    <path d="M46 70c4-10 12-12 14-4 1 6-4 12-10 12-3 0-5-3-4-8z" fill="#6b5340"/>
+    <path d="M114 70c-4-10-12-12-14-4-1 6 4 12 10 12 3 0 5-3 4-8z" fill="#6b5340"/>
+    <ellipse cx="80" cy="98" rx="50" ry="42" fill="#6a5038"/>
+    <ellipse cx="80" cy="100" rx="46" ry="38" fill="#9a7a52"/>
+    <ellipse cx="80" cy="86" rx="26" ry="14" fill="#c4a574" opacity=".55"/>
+    <ellipse cx="64" cy="92" rx="10" ry="6" fill="#c4a574" opacity=".55"/>
+    <ellipse cx="98" cy="90" rx="9" ry="5" fill="#6a5038" opacity=".5"/>
+    <ellipse cx="80" cy="78" rx="12" ry="6" fill="#d8c4a4" opacity=".4"/>
+    ${furTicks([[58, 84, 5], [74, 76, 3], [96, 76, -3], [112, 86, -5], [52, 104, 6], [108, 108, -4]], "#4a3428")}
+    <path d="M52 96c12 10 22 14 28 14s16-4 28-14c-8 8-18 12-28 12s-20-4-28-12z" fill="#3d2a22" opacity=".9"/>
+    <ellipse cx="80" cy="116" rx="18" ry="12" fill="#efe2d0"/>
+    <ellipse cx="62" cy="108" rx="8" ry="6" fill="#efe2d0" opacity=".7"/>
+    <ellipse cx="98" cy="108" rx="8" ry="6" fill="#efe2d0" opacity=".7"/>
+    <g class="blink-eye">
+      <ellipse cx="66" cy="98" rx="5" ry="4.4" fill="#efe6d4"/>
+      <ellipse cx="94" cy="98" rx="5" ry="4.4" fill="#efe6d4"/>
+      <ellipse cx="66.3" cy="98.3" rx="2.8" ry="3" fill="#2a1c14"/>
+      <ellipse cx="94.3" cy="98.3" rx="2.8" ry="3" fill="#2a1c14"/>
+      <circle cx="67.4" cy="96.8" r="0.95" fill="#fff"/>
+      <circle cx="95.4" cy="96.8" r="0.95" fill="#fff"/>
+    </g>
+    <ellipse cx="80" cy="114" rx="4.2" ry="3" fill="#2c2420"/>
+    <path d="M74 118c2 2 4 3 6 3s4-1 6-3" stroke="#5c4030" stroke-width="1" fill="none"/>
+    <path d="M72 114h-18M74 119h-16M88 114h18M86 119h16" stroke="#b7a890" stroke-width="1.2" stroke-linecap="round"/>
   `)
 };
 
