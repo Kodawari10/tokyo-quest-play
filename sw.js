@@ -1,5 +1,5 @@
 /* App shell for Tokyo Quest. Map tiles are a different origin and are not cached here. */
-const CACHE = "tokyo-quest-v1";
+const CACHE = "tokyo-quest-v2";
 const FILES = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const FILES = [
   "./css/game.css",
   "./js/characters.js",
   "./js/world.js",
+  "./js/scenes.js",
   "./js/game.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

@@ -77,18 +77,19 @@
     <button id="btn-hurry" class="btn hurry">はや足</button>
     <div id="toast" class="toast" hidden></div>
     <div id="banner" class="banner" hidden></div>
-    <div id="burst" class="burst"></div>
+    <div id="scene" class="scene" hidden>
+      <div id="scene-art" class="scene-art"></div>
+      <div id="burst" class="burst"></div>
+      <div class="card" role="dialog" aria-modal="true">
+        <button id="card-x" class="x" aria-label="Close">×</button>
+        <div id="card-body"></div>
+      </div>
+    </div>
     <div id="train-anim" class="train-anim" hidden>
       <div>
         <div class="window"><div class="poles"></div></div>
         <p id="train-anim-label">電車</p>
         <p>ガタンゴトン…</p>
-      </div>
-    </div>
-    <div id="card-modal" class="modal" hidden>
-      <div class="card" role="dialog" aria-modal="true">
-        <button id="card-x" class="x" aria-label="Close">×</button>
-        <div id="card-body"></div>
       </div>
     </div>
     <div id="train" class="modal" hidden>
@@ -108,7 +109,8 @@
         <p><b>日常</b> are ordinary Tokyo errands: an onigiri, the scramble, a station stamp, ramen, a vending machine, Yoyogi Park, Meiji Jingu, Tokyo Tower.</p>
         <p><b>ひみつ</b> are neighborhood things, marked with a gold badge. Each one ends with a short local tip. Read it again from the quest list.</p>
         <p><b>電車</b> drops you at a real station so Gotokuji, Yanaka, or Kichijoji are a ride plus a short walk, not an hour of holding an arrow.</p>
-        <p>You can cross blocks freely. The map underneath is real; the stroll is a little magical.</p>
+        <p>Each quest opens a cartoon of that real place, with you in the picture. Then you step back onto the map and the stamp stays.</p>
+        <p>You can cross blocks freely. The map underneath is real; the tiles are softened so the day feels like a picture book.</p>
         <p>Map tiles © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, from tile.openstreetmap.org. Places were read from OpenStreetMap on 2026-11-17 and saved in the game, so play does not call Overpass. Data © OpenStreetMap contributors, ODbL.</p>
         <p>Change who is walking. Stamps stay.</p>
         <div id="mini-chars" class="chars-mini"></div>
@@ -119,6 +121,7 @@
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="js/characters.js"></script>
   <script src="js/world.js"></script>
+  <script src="js/scenes.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

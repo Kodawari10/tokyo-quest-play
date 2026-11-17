@@ -431,6 +431,14 @@ function rideTo(station) {
 
 function placeById(id) { return PLACES.find((p) => p.id === id); }
 
+function showScene(mission) {
+  const art = document.getElementById("scene-art");
+  try { art.innerHTML = renderScene(mission.id); }
+  catch (err) { art.innerHTML = ""; }
+  const scene = document.getElementById("scene");
+  scene.classList.remove("go");
+  scene.hidden = false;
+}
 function openCard(place) {
   cardPlace = place;
   cardMode = "play";
@@ -438,11 +446,11 @@ function openCard(place) {
   state.busy = true;
   state.dest = null;
   clearTimeout(waitTimer);
+  showScene(missionById(place.mission));
   renderCard();
-  document.getElementById("card-modal").hidden = false;
 }
 function closeCard() {
-  document.getElementById("card-modal").hidden = true;
+  document.getElementById("scene").hidden = true;
   state.busy = false;
   cardPlace = null;
   clearTimeout(waitTimer);
@@ -494,6 +502,7 @@ function renderCard() {
       if (!btn) return;
       btn.disabled = false;
       if (light) light.classList.add("go");
+      document.getElementById("scene").classList.add("go");
       if (label) label.textContent = "あお信号。いまわたる";
     }, m.waitMs || 2000);
   } else {
@@ -552,8 +561,8 @@ function openTip(missionId) {
   state.rewardLine = m.reward || "";
   cardMode = "reward";
   state.busy = true;
+  showScene(m);
   renderCard();
-  document.getElementById("card-modal").hidden = false;
 }
 
 function showToast(text) {
@@ -795,6 +804,12 @@ function bootSelect() {
 }
 
 window.TQ = {
+  preview(missionId) {
+    const place = placesFor(missionId)[0];
+    if (!place) return;
+    if (!state.characterId) state.characterId = "mochi";
+    openCard(place);
+  },
   get state() { return state; },
   setPos(lat, lng) {
     state.lat = lat; state.lng = lng; state.dest = null; state.userPanned = false;
