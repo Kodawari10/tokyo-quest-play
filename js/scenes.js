@@ -163,7 +163,7 @@ const SCENE_BUILDERS = {
   ramen() {
     return stage("ramen", "#fff1dc", "#ffd6c0", `
       <rect x="0" y="0" width="960" height="70" fill="#e15b5b"/>
-      <text x="70" y="46" fill="#fff" font-size="24" font-family="Zen Maru Gothic, sans-serif">らーめん</text>
+      <text x="70" y="46" fill="#fff" font-size="24" font-family="Zen Maru Gothic, sans-serif">一蘭</text>
       <rect x="80" y="250" width="520" height="40" rx="8" fill="#c4844a"/>
       <rect x="100" y="290" width="40" height="90" fill="#e7c9bf"/>
       <rect x="520" y="290" width="40" height="90" fill="#e7c9bf"/>
@@ -444,6 +444,84 @@ const SCENE_BUILDERS = {
       <rect x="0" y="420" width="960" height="120" fill="#e7e0d4"/>
       ${hero(180, 500, 0.95)}
       ${sign("伏見火防稲荷")}`);
+  },
+  senso() {
+    return stage("senso", "#ffe7c2", "#f3b7c8", `
+      <rect x="0" y="300" width="960" height="240" fill="#e7d3b0"/>
+      <rect x="280" y="150" width="400" height="180" rx="8" fill="#c4513a"/>
+      <rect x="320" y="200" width="320" height="130" fill="#f4e2c4"/>
+      <path d="M250 150 L480 70 L710 150" fill="#5c4652"/>
+      ${lantern(180, 120, "#e15b5b", 0)}
+      ${lantern(780, 130, "#e15b5b", 0.4)}
+      ${person(220, 400, "#d5ecff", 0)}
+      ${person(700, 410, "#ffd0e0", 0.2)}
+      ${hero(430, 500, 0.95)}
+      ${sign("浅草寺")}`);
+  },
+  gacha() {
+    return stage("gacha", "#d5ecff", "#ffe3ef", `
+      <rect x="0" y="360" width="960" height="180" fill="#f7d7e4"/>
+      <rect x="300" y="140" width="360" height="240" rx="24" fill="#fff"/>
+      <circle cx="400" cy="230" r="36" fill="#ffb7c8"/>
+      <circle cx="480" cy="250" r="36" fill="#ffe7ae"/>
+      <circle cx="560" cy="230" r="36" fill="#c9f0df"/>
+      <rect x="390" y="300" width="180" height="28" rx="14" fill="#f28aaa"/>
+      ${hero(160, 500, 0.95)}
+      ${sign("ガチャポン")}`);
+  },
+  nakamise() {
+    return stage("nakamise", "#fff4ea", "#ffd6c4", `
+      <rect x="0" y="300" width="960" height="240" fill="#e7d3b0"/>
+      <rect x="40" y="160" width="200" height="160" fill="#c4513a"/>
+      <rect x="720" y="150" width="200" height="170" fill="#e07a4a"/>
+      <rect x="80" y="210" width="120" height="16" fill="#fff6d0"/>
+      <rect x="760" y="200" width="120" height="16" fill="#fff6d0"/>
+      ${lantern(300, 90, "#ffb15a", 0.2)}
+      ${person(360, 400, "#fff", 0)}
+      ${hero(500, 500, 0.95)}
+      ${sign("仲見世")}`);
+  },
+  hoppy() {
+    return stage("hoppy", "#2a2438", "#5c4652", `
+      <rect x="0" y="340" width="960" height="200" fill="#3a3040"/>
+      ${lantern(220, 80, "#e15b5b", 0)}
+      ${lantern(480, 70, "#ffb15a", 0.3)}
+      ${lantern(740, 90, "#e15b5b", 0.6)}
+      <rect x="160" y="250" width="180" height="120" rx="8" fill="#6a4038"/>
+      <rect x="620" y="240" width="180" height="130" rx="8" fill="#6a4038"/>
+      ${hero(430, 500, 0.95)}
+      ${sign("ホッピー通り")}`);
+  },
+  ameyoko() {
+    return stage("ameyoko", "#fff6ea", "#f7c3d4", `
+      <rect x="0" y="80" width="960" height="40" fill="#8a9bb0"/>
+      <rect x="0" y="120" width="960" height="16" fill="#5c4652"/>
+      <rect x="40" y="200" width="220" height="140" fill="#fff"/>
+      <rect x="700" y="190" width="220" height="150" fill="#ffe7ae"/>
+      <rect x="0" y="360" width="960" height="180" fill="#d7c4b0"/>
+      ${person(300, 400, "#d5ecff", 0.1)}
+      ${hero(480, 500, 0.95)}
+      ${sign("アメ横")}`);
+  },
+  kanda() {
+    return stage("kanda", "#ffe7f0", "#d5ecff", `
+      <rect x="0" y="280" width="960" height="260" fill="#c9e6c0"/>
+      <rect x="340" y="150" width="280" height="150" fill="#c4513a"/>
+      <path d="M310 150 L480 80 L650 150" fill="#5c4652"/>
+      <rect x="430" y="210" width="100" height="90" fill="#f4e2c4"/>
+      ${hero(180, 500, 0.95)}
+      ${sign("神田明神")}`);
+  },
+  yoko() {
+    return stage("yoko", "#3a3044", "#6a5a68", `
+      <rect x="0" y="40" width="960" height="70" fill="#5c6a7a"/>
+      <rect x="0" y="110" width="960" height="18" fill="#2a2430"/>
+      <rect x="80" y="220" width="240" height="140" rx="10" fill="#c4844a"/>
+      <rect x="640" y="210" width="240" height="150" rx="10" fill="#8a5a4a"/>
+      ${steam(200, 180, 0)}
+      ${lantern(480, 140, "#ffb15a", 0.2)}
+      ${hero(430, 500, 0.95)}
+      ${sign("産直横丁")}`);
   }
 };
 

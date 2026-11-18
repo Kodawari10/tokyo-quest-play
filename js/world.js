@@ -3,7 +3,7 @@
 const OSM_DATE = "2026-11-17";
 
 const START = { lat: 35.65888, lng: 139.7002 };
-const BOUNDS = { south: 35.598, west: 139.568, north: 35.736, east: 139.782 };
+const BOUNDS = { south: 35.598, west: 139.568, north: 35.736, east: 139.820 };
 
 const STATIONS = [
   { id: "st-shibuya", name: "Shibuya", nameJa: "渋谷", line: "JR Yamanote", lat: 35.65808, lng: 139.7017647, osm: "node/241896099" },
@@ -18,7 +18,12 @@ const STATIONS = [
   { id: "st-kichijoji", name: "Kichijoji", nameJa: "吉祥寺", line: "JR Chuo", lat: 35.7031389, lng: 139.5802187, osm: "node/2559434118" },
   { id: "st-kagura", name: "Kagurazaka", nameJa: "神楽坂", line: "Tozai line", lat: 35.7039298, lng: 139.7341347, osm: "node/5408235029" },
   { id: "st-sendagi", name: "Sendagi", nameJa: "千駄木", line: "Chiyoda line", lat: 35.7255451, lng: 139.7632813, osm: "node/7777177085" },
-  { id: "st-kamiya", name: "Kamiyacho", nameJa: "神谷町", line: "Hibiya line", lat: 35.662964, lng: 139.7450477, osm: "node/7786715974" }
+  { id: "st-kamiya", name: "Kamiyacho", nameJa: "神谷町", line: "Hibiya line", lat: 35.662964, lng: 139.7450477, osm: "node/7786715974" },
+  { id: "st-ginza", name: "Ginza", nameJa: "銀座", line: "Ginza line", lat: 35.672071, lng: 139.763893, osm: "node/6272010117", east: true },
+  { id: "st-yurakucho", name: "Yurakucho", nameJa: "有楽町", line: "JR Yamanote", lat: 35.674957, lng: 139.763045, osm: "node/2558121955", east: true },
+  { id: "st-akihabara", name: "Akihabara", nameJa: "秋葉原", line: "JR", lat: 35.698367, lng: 139.773032, osm: "node/6780109836", east: true },
+  { id: "st-ueno", name: "Ueno", nameJa: "上野", line: "JR", lat: 35.712167, lng: 139.778196, osm: "node/460049585", east: true },
+  { id: "st-asakusa", name: "Asakusa", nameJa: "浅草", line: "Ginza line", lat: 35.710842, lng: 139.797816, osm: "node/6237151013", east: true }
 ];
 
 const MISSIONS = [
@@ -40,8 +45,9 @@ const MISSIONS = [
     blurb: "Buy an onigiri at a real 7-Eleven, FamilyMart, or Lawson.",
     verb: "Go in", verbJa: "入る",
     kind: "choice",
-    prompt: "The door chimes. What goes in the basket?",
-    promptJa: "いらっしゃいませ",
+    want: "shake",
+    prompt: "A handwritten sign says しゃけ. The door chimes. What goes in the basket?",
+    promptJa: "本日の札は、しゃけ",
     choices: [
       { id: "shake", label: "しゃけ", sub: "Salmon", line: "Warm rice, salty salmon. いただきます。" },
       { id: "ume", label: "うめ", sub: "Umeboshi", line: "Sour plum in the middle. A perfect commute bite." },
@@ -78,14 +84,11 @@ const MISSIONS = [
     title: "Slurp a ramen", titleJa: "ラーメン",
     blurb: "A real bowl at Ichiran, Afuri, Ippudo, Nagi, or Yaro Ramen.",
     verb: "Sit", verbJa: "座る",
-    kind: "choice",
-    prompt: "The ticket machine is waiting. Which soup?",
-    promptJa: "どのスープ？",
-    choices: [
-      { id: "shoyu", label: "しょうゆ", sub: "Soy", line: "Clear, savory, gone too fast." },
-      { id: "shio", label: "しお", sub: "Salt", line: "Light and golden. You drink the last spoon." },
-      { id: "miso", label: "みそ", sub: "Miso", line: "Cloudy and cozy. The walk home can wait." }
-    ]
+    kind: "rhythm",
+    prompt: "Slurp on the beat. Tap the bowl that glows, three times.",
+    promptJa: "光る器を、三回",
+    reward: "You slurped on the beat. The broth is gone.",
+    rewardJa: "拍に合わせて、すすった。"
   },
   {
     id: "park", secret: false, glyph: "tree", area: "Yoyogi", areaJa: "代々木",
@@ -105,7 +108,8 @@ const MISSIONS = [
     blurb: "Walk the gravel to Meiji Jingu and pay respects.",
     verb: "Visit", verbJa: "参る",
     kind: "ritual",
-    prompt: "At the hall: two bows, two claps, one bow.",
+    fortune: true,
+    prompt: "At the hall: two bows, two claps, one bow. Then draw an omikuji.",
     promptJa: "二礼二拍手一礼",
     steps: [
       { label: "礼", sub: "Bow" },
@@ -162,13 +166,11 @@ const MISSIONS = [
     title: "Neighborhood sento", titleJa: "銭湯",
     blurb: "Soak at Kosugi-yu Harajuku, a real public bath.",
     verb: "Enter", verbJa: "入る",
-    kind: "choice",
-    prompt: "Shoes in a locker. Wash at a stool before you even look at the bath.",
-    promptJa: "先に体を洗う",
-    choices: [
-      { id: "hot", label: "あつ湯", sub: "Hot bath", line: "You rinse the soap off and sink in. The day loosens." },
-      { id: "warm", label: "ぬる湯", sub: "Warm bath", line: "Warm enough to stay. Nobody is performing wellness. It is just a bath." }
-    ],
+    kind: "thermo",
+    prompt: "Stop the heat when the dot sits in the green, just-right band.",
+    promptJa: "ちょうどいい湯で止める",
+    reward: "The water is just right. You rinsed first. The day loosens.",
+    rewardJa: "ちょうどいい湯。先に体を洗った。",
     tipTitle: "Local tip",
     tip: "A sento is a neighborhood bath, not a ryokan spa. You scrub at the stools, rinse, then share the water — no soap in the tub, no swimsuits. Kosugi-yu's original bathhouse is in Koenji; this is their Harajuku shop. The front desk sells a towel if you came without one."
   },
@@ -362,6 +364,98 @@ const MISSIONS = [
     reward: "One bow is enough. The big shrines can wait.",
     tipTitle: "Local tip",
     tip: "Neighborhood shrines like this sit on a footprint smaller than a shop. Fushimi Hibuse Inari is a fire-prevention Inari tucked into the Kagurazaka alleys, the kind of guardian a wooden quarter would want. You can bow as you pass. No ticket, no crowd, no need to clap unless you want to."
+  },
+  {
+    id: "senso", secret: false, east: true, glyph: "torii", area: "Asakusa", areaJa: "浅草",
+    title: "Senso-ji", titleJa: "浅草寺",
+    blurb: "The main hall at Senso-ji. Nakamise is the shop street in front.",
+    verb: "Visit", verbJa: "参る",
+    kind: "ritual",
+    fortune: true,
+    prompt: "Two bows, two claps, one bow, then an omikuji.",
+    promptJa: "二礼二拍手一礼、それからおみくじ",
+    steps: [
+      { label: "礼", sub: "Bow" },
+      { label: "拍手", sub: "Clap" },
+      { label: "礼", sub: "Bow" }
+    ],
+    reward: "Incense, a courtyard, and a fortune slip in your hand.",
+    rewardJa: "線香と、おみくじ。"
+  },
+  {
+    id: "gacha", secret: false, east: true, repeat: true, glyph: "candy", area: "Akihabara", areaJa: "秋葉原",
+    title: "Gachapon", titleJa: "ガチャポン",
+    blurb: "Turn a capsule machine at Akihabara Gachapon Kaikan. You can come back.",
+    verb: "Turn", verbJa: "まわす",
+    kind: "gacha",
+    prompt: "¥200 a turn. The capsule is a surprise.",
+    promptJa: "一回 200円",
+    reward: "A capsule cracked open.",
+    rewardJa: "カプセルが開いた。"
+  },
+  {
+    id: "nakamise", secret: true, east: true, glyph: "arcade", area: "Asakusa", areaJa: "浅草",
+    title: "Nakamise", titleJa: "仲見世通り",
+    blurb: "The shop street from Kaminarimon up to the temple. A morning place.",
+    verb: "Browse", verbJa: "見る",
+    kind: "confirm",
+    prompt: "Crackers, fans, and a crowd that knows where it is going.",
+    promptJa: "せんべいと人波",
+    button: "Buy a senbei", buttonJa: "せんべい",
+    reward: "A warm cracker in a paper sleeve. You eat it before the temple gate.",
+    tipTitle: "Local tip",
+    tip: "Nakamise is the covered approach to Senso-ji, open from morning and shut by evening. The shops are for snacks and souvenirs, not for lingering after dark. Come when the street is a market, not a night alley."
+  },
+  {
+    id: "hoppy", secret: true, east: true, glyph: "lantern", area: "Asakusa", areaJa: "浅草",
+    title: "Hoppy Street", titleJa: "ホッピー通り",
+    blurb: "The evening alley of cheap beer and red lanterns, one block off Nakamise.",
+    verb: "Step in", verbJa: "入る",
+    kind: "confirm",
+    prompt: "Red lanterns, low stools, and a drink that is mostly soda.",
+    promptJa: "提灯の下",
+    button: "Sit", buttonJa: "座る",
+    reward: "A stool, a hoppy, and the temple crowd somewhere else.",
+    tipTitle: "Local tip",
+    tip: "Hoppy-dori is the drinkers' lane west of Senso-ji. Hoppy is a cheap, nearly non-alcoholic beer mixer, usually cut with shochu. The street is an evening place: lanterns on, counters open, and a very different Asakusa from the morning market."
+  },
+  {
+    id: "ameyoko", secret: true, east: true, glyph: "bag", area: "Ueno", areaJa: "上野",
+    title: "Ameyoko", titleJa: "アメ横",
+    blurb: "The market under the tracks between Ueno and Okachimachi.",
+    verb: "Walk it", verbJa: "歩く",
+    kind: "confirm",
+    prompt: "Grilled snacks, shop calls, and a roof of train tracks.",
+    promptJa: "線路の下の市場",
+    button: "Snack", buttonJa: "つまむ",
+    reward: "You walk the whole lane and leave with something in a bag.",
+    tipTitle: "Local tip",
+    tip: "Ameya-Yokocho, Ameyoko, runs under the Yamanote tracks by Ueno. It is a daytime market: food, clothes, and shopkeepers calling out prices. Morning and afternoon are the hours. By night the shutters are the sight."
+  },
+  {
+    id: "kanda", secret: true, east: true, glyph: "torii", area: "Akihabara", areaJa: "神田",
+    title: "Kanda Myojin", titleJa: "神田明神",
+    blurb: "The shrine on the hill above the electronics, older than the gadgets.",
+    verb: "Climb", verbJa: "のぼる",
+    kind: "fortune",
+    prompt: "Draw one omikuji. The gate looks down on Akihabara.",
+    promptJa: "おみくじを一枚",
+    reward: "A paper fortune, and the city noise one hill below.",
+    tipTitle: "Local tip",
+    tip: "Kanda Myojin sits just west of the electric town. People come for the Kanda Matsuri, and also on an ordinary afternoon when the hill is quiet. It is a daytime shrine visit, not a night alley."
+  },
+  {
+    id: "yoko", secret: true, east: true, glyph: "lane", area: "Yurakucho", areaJa: "有楽町",
+    title: "Under the tracks", titleJa: "産直横丁",
+    blurb: "Yurakucho's little dining alley, in the shadow of the railway.",
+    verb: "Duck in", verbJa: "入る",
+    kind: "confirm",
+    prompt: "Counters, steam, and a train going over your head.",
+    promptJa: "頭上を電車",
+    button: "Order a skewer", buttonJa: "串",
+    reward: "You eat standing-close, under the Yamanote line.",
+    tipTitle: "Local tip",
+    tip: "Yurakucho Sanchoku Yokocho is a small dining lane by the station, in the neighborhood of the old guard-shita counters under the tracks. It is an evening place: go after the offices empty, not on a morning errand."
   }
 ];
 
@@ -407,7 +501,14 @@ const EXTRA_PLACES = [
   { id: "kemban", mission: "alleys", name: "Kemban Yokocho", nameJa: "見番横丁", areaJa: "神楽坂", lat: 35.7009942, lng: 139.7402043, osm: "way/92651467", radius: 40 },
   { id: "honda", mission: "alleys", name: "Honda Yokocho", nameJa: "本多横丁", areaJa: "神楽坂", lat: 35.7019633, lng: 139.7403036, osm: "way/141602069", radius: 40 },
   { id: "michikusa", mission: "alleys", name: "Michikusa Yokocho", nameJa: "みちくさ横丁", areaJa: "神楽坂", lat: 35.7010029, lng: 139.7426373, osm: "way/586746202", radius: 40 },
-  { id: "inari", mission: "inari", name: "Fushimi Hibuse Inari", nameJa: "伏見火防稲荷神社", areaJa: "神楽坂", lat: 35.7010379, lng: 139.7405725, osm: "way/507282415", radius: 36 }
+  { id: "inari", mission: "inari", name: "Fushimi Hibuse Inari", nameJa: "伏見火防稲荷神社", areaJa: "神楽坂", lat: 35.7010379, lng: 139.7405725, osm: "way/507282415", radius: 36 },
+  { id: "senso", mission: "senso", name: "Senso-ji Main Hall", nameJa: "浅草寺本殿", areaJa: "浅草", lat: 35.714736, lng: 139.79675, osm: "way/91008673", radius: 55 },
+  { id: "gacha-kaikan", mission: "gacha", name: "Akihabara Gachapon Kaikan", nameJa: "秋葉原ガチャポン会館", areaJa: "秋葉原", lat: 35.701856, lng: 139.77125, osm: "node/4274726996", radius: 36, repeat: true },
+  { id: "nakamise", mission: "nakamise", name: "Nakamise Shopping Street", nameJa: "仲見世商店街", areaJa: "浅草", lat: 35.712388, lng: 139.796502, osm: "way/859751371", radius: 46 },
+  { id: "hoppy", mission: "hoppy", name: "Hoppy Street", nameJa: "ホッピー通り", areaJa: "浅草", lat: 35.71379, lng: 139.794127, osm: "way/30705368", radius: 42 },
+  { id: "ameyoko", mission: "ameyoko", name: "Ameyoko Street", nameJa: "アメ横通り", areaJa: "上野", lat: 35.709699, lng: 139.774648, osm: "way/509241395", radius: 48 },
+  { id: "kanda", mission: "kanda", name: "Kanda Myojin", nameJa: "神田明神", areaJa: "外神田", lat: 35.701966, lng: 139.767752, osm: "way/89431876", radius: 50 },
+  { id: "yoko", mission: "yoko", name: "Yurakucho Sanchoku Yokocho", nameJa: "有楽町産直横丁", areaJa: "有楽町", lat: 35.672133, lng: 139.760328, osm: "node/10681174306", radius: 36 }
 ];
 
 const PLACES = STATIONS.map((s) => ({

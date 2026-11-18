@@ -3,7 +3,65 @@ const M_LAT = 111320;
 const WALK = 13;
 const HURRY = 28;
 const PRICE = { onigiri: 150, vending: 130, ramen: 420, dagashi: 80 };
-const EARN = { scramble: 120, onigiri: 80, station: 200, vending: 50, ramen: 200, park: 160, shrine: 240, tower: 260, lion: 180, sento: 200 };
+const EARN = {
+  scramble: 120, onigiri: 80, station: 200, vending: 50, ramen: 200, park: 160, shrine: 240, tower: 260, lion: 180, sento: 200,
+  senso: 220, gacha: 40, nakamise: 160, hoppy: 180, ameyoko: 160, kanda: 200, yoko: 180
+};
+const HOURS = {
+  lion: [11, 22, "The kissaten is dark. Records start at 11."],
+  ramen: [11, 22, "The noren is still down. Ramen starts at 11."],
+  sento: [12, 22, "The bath opens at noon."],
+  nonbei: [17, 23, "This alley wakes up after 17:00."],
+  golden: [17, 23, "Golden Gai is a night place. Come back after 17:00."],
+  omoide: [17, 23, "The yakitori smoke starts in the evening."],
+  harmonica: [17, 23, "The stools fill up after dark."],
+  hoppy: [17, 23, "Hoppy Street lights its lanterns after 17:00."],
+  yoko: [17, 23, "Under the tracks, the counters open at dusk."],
+  yanaka: [8, 17, "Yanaka Ginza is a daytime shopping street."],
+  shotengai: [8, 17, "The arcade opens in the morning."],
+  dagashi: [8, 18, "The candy shop is a daytime stop."],
+  depachika: [10, 20, "The food floor runs from 10."],
+  nakamise: [9, 19, "Nakamise opens at 9 and closes by evening."],
+  ameyoko: [8, 18, "Ameyoko is a morning and afternoon market."],
+  senso: [6, 17, "The temple grounds are a daytime visit."],
+  kanda: [9, 17, "The shrine on the hill is a daytime stop."],
+  gacha: [10, 21, "The capsule machines open at 10."]
+};
+const CAPSULES = [
+  { id: "shiba", name: "Shiba squeeze", nameJa: "柴犬", rare: false },
+  { id: "lantern-cap", name: "Lantern", nameJa: "提灯", rare: false },
+  { id: "onigiri-cap", name: "Onigiri", nameJa: "おにぎり", rare: false },
+  { id: "train-cap", name: "Yamanote", nameJa: "山手線", rare: false },
+  { id: "neko-cap", name: "Beckoning cat", nameJa: "招き猫", rare: false },
+  { id: "tower-cap", name: "Tiny tower", nameJa: "タワー", rare: true },
+  { id: "daruma", name: "Daruma", nameJa: "だるま", rare: true },
+  { id: "kaminari", name: "Thunder gate", nameJa: "雷門", rare: true }
+];
+const CHARMS = [
+  { id: "kotsu", name: "Safe travel", nameJa: "交通安全", perk: "Hurry is quicker." },
+  { id: "kinun", name: "Money luck", nameJa: "金運", perk: "Quests pay a little more." },
+  { id: "kaiun", name: "Open luck", nameJa: "開運", perk: "Rare capsules show up more." },
+  { id: "kenko", name: "Health", nameJa: "健康", perk: "The bath pays a little extra." }
+];
+const FORTUNES = [
+  { id: "daikichi", name: "大吉", line: "Great luck. The rest of the day leans your way." },
+  { id: "chukichi", name: "中吉", line: "Good luck. Nothing flashy, everything fine." },
+  { id: "kichi", name: "吉", line: "Luck enough. Keep walking." },
+  { id: "shokichi", name: "小吉", line: "A small luck. It still counts." }
+];
+const BADGE_NAME = {
+  secret: "ひみつ", night: "夜ふかし", collector: "カプセル", east: "東東京", daily: "今日", charm: "お守り"
+};
+const LANTERN_SPOTS = [
+  [35.6599887, 139.7015062], [35.6940636, 139.7046894], [35.6930689, 139.6995016],
+  [35.703743, 139.5792576], [35.6750484, 139.6994785], [35.7010379, 139.7405725],
+  [35.71379, 139.794127], [35.714736, 139.79675], [35.672133, 139.760328]
+];
+const COACH = [
+  "Arrows, WASD, or the pad. Shift or はや足 hurries. The streets under you are the real ones.",
+  "Pink pins are everyday errands. Gold pins are local secrets. Walk up until a speech bubble appears.",
+  "A finished quest names the real place. 📓 keeps it. ¥500 on the train board opens Asakusa, Ueno, Akihabara, and Ginza."
+];
 const TOYS = [
   { id: "omamori", name: "Omamori", nameJa: "お守り" },
   { id: "neko-charm", name: "Beckoning cat", nameJa: "招き猫チャーム" },
@@ -54,10 +112,23 @@ const state = {
   hour: 9,
   stamps: [],
   toys: [],
-  walked: 0
+  walked: 0,
+  east: false,
+  capsules: [],
+  charms: [],
+  charm: null,
+  badges: [],
+  streak: 0,
+  lastDate: "",
+  todayCount: 0,
+  goalDone: "",
+  coach: 0,
+  bookTab: "places"
 };
 
-let map, player, poiMarkers = [], audioCtx, locMap, musicTimer, timingFrame;
+let map, player, poiMarkers = [], lanternMarkers = [], audioCtx, locMap, musicTimer, timingFrame, rhythmTimer, performerFrame;
+let rhythmStep = 0;
+let rhythmHits = 0;
 let lastTs = 0;
 let saveTimer = 0;
 let movedSinceSave = false;
@@ -82,8 +153,9 @@ function formatDist(m) {
   return (m / 1000).toFixed(1) + " km";
 }
 function done(id) { return !!state.completed[id]; }
-function everyday() { return MISSIONS.filter((m) => !m.secret); }
-function secrets() { return MISSIONS.filter((m) => m.secret); }
+function playableMissions() { return MISSIONS.filter((m) => !m.east || state.east); }
+function everyday() { return playableMissions().filter((m) => !m.secret); }
+function secrets() { return playableMissions().filter((m) => m.secret); }
 function countDone(list) { return list.filter((m) => done(m.id)).length; }
 
 function load() {
@@ -91,13 +163,13 @@ function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    if (!data || !data.characterId || (data.version !== 1 && data.version !== 2)) return null;
+    if (!data || !data.characterId || (data.version !== 1 && data.version !== 2 && data.version !== 3)) return null;
     return data;
   } catch (e) { return null; }
 }
 function save() {
   const data = {
-    version: 2,
+    version: 3,
     characterId: state.characterId,
     lat: state.lat,
     lng: state.lng,
@@ -110,7 +182,17 @@ function save() {
     yen: state.yen,
     hour: state.hour,
     stamps: state.stamps,
-    toys: state.toys
+    toys: state.toys,
+    east: !!state.east,
+    capsules: state.capsules,
+    charms: state.charms,
+    charm: state.charm,
+    badges: state.badges,
+    streak: state.streak,
+    lastDate: state.lastDate,
+    todayCount: state.todayCount,
+    goalDone: state.goalDone,
+    coach: state.coach
   };
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { /* ignore quota */ }
   movedSinceSave = false;
@@ -156,7 +238,35 @@ function nearestStation(from) {
   return STATIONS.reduce((best, s) => dist(from, s) < dist(from, best) ? s : best);
 }
 function nextIncomplete() {
-  return MISSIONS.find((m) => !done(m.id)) || null;
+  return playableMissions().find((m) => !done(m.id)) || null;
+}
+function unlockedPlace(p) {
+  const st = STATIONS.find((s) => s.id === p.id);
+  if (st && st.east && !state.east) return false;
+  const m = missionById(p.mission);
+  if (m && m.east && !state.east) return false;
+  return true;
+}
+function grantBadge(id) {
+  if (!state.badges) state.badges = [];
+  if (state.badges.includes(id)) return;
+  state.badges.push(id);
+}
+function rankName() {
+  const n = state.stamps.length;
+  if (n >= 12) return "地元";
+  if (n >= 6) return "通";
+  if (n >= 3) return "近所";
+  return "見習い";
+}
+function hoursOf(mission) { return HOURS[mission.id] || null; }
+function placeOpen(mission) {
+  const h = hoursOf(mission);
+  if (!h) return true;
+  return state.hour >= h[0] && state.hour < h[1];
+}
+function giveToy(t) {
+  if (!state.toys.some((x) => x.id === t.id)) state.toys.push(t);
 }
 function activeMission() { return missionById(state.activeId) || nextIncomplete() || MISSIONS[0]; }
 
@@ -204,6 +314,7 @@ function initMap() {
   map.on("load", () => {
     buildMarkers();
     applySky();
+    if (!state.introduced && state.coach < COACH.length) showCoach();
     const inner = document.querySelector(".maplibregl-ctrl-attrib-inner");
     if (inner && !/OpenStreetMap/.test(inner.textContent)) {
       inner.insertAdjacentHTML("beforeend", ' © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> © <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a>');
@@ -223,8 +334,9 @@ function paintCharacter() {
 function visiblePlaces() {
   const out = [];
   for (const m of MISSIONS) {
-    const places = placesFor(m.id);
-    if (!done(m.id)) out.push(...places);
+    const places = placesFor(m.id).filter(unlockedPlace);
+    if (!places.length) continue;
+    if (!done(m.id) || m.repeat) out.push(...places);
     else {
       const keep = state.completed[m.id] && state.completed[m.id].placeId;
       const one = places.find((p) => p.id === keep) || places[0];
@@ -283,7 +395,8 @@ function step(dt) {
   }
   const moving = !!(vx || vy);
   if (moving) {
-    const speed = (state.hurry || state.keys.hurry) ? HURRY : WALK;
+    let speed = (state.hurry || state.keys.hurry) ? HURRY : WALK;
+    if (state.charm === "kotsu" && (state.hurry || state.keys.hurry)) speed = 36;
     state.lat += (vy * speed * dt) / M_LAT;
     state.lng += (vx * speed * dt) / mLng(state.lat);
     clamp();
@@ -305,7 +418,7 @@ function step(dt) {
 }
 
 function nearbyPlace() {
-  const candidates = PLACES.filter((p) => !done(p.mission) && dist(here(), p) <= p.radius);
+  const candidates = PLACES.filter((p) => unlockedPlace(p) && dist(here(), p) <= p.radius && (p.repeat || !done(p.mission)));
   if (!candidates.length) return null;
   const preferred = candidates.filter((p) => p.mission === state.activeId);
   const pool = preferred.length ? preferred : candidates;
@@ -359,7 +472,7 @@ function updateArea() {
   const narrow = window.matchMedia("(max-width: 860px)").matches;
   const text = narrow
     ? label + " · " + countDone(everyday()) + "/" + everyday().length + " · " + countDone(secrets()) + "/" + secrets().length
-    : label;
+    : label + " · " + rankName();
   const el = document.getElementById("area-label");
   if (el.textContent !== text) el.textContent = text;
 }
@@ -386,13 +499,15 @@ function renderQuest() {
     const on = m.id === state.activeId ? " on" : "";
     const dn = done(m.id) ? " done" : "";
     const badge = m.secret ? '<span class="badge">ひみつ</span>' : "";
+    const hours = hoursOf(m);
+    const shut = !done(m.id) && hours && !placeOpen(m) ? " · " + hours[0] + ":00" : "";
     const check = done(m.id) ? "✓ " : "";
     const tipBtn = done(m.id) && m.secret ? `<button class="btn tiny" data-tip="${m.id}">Tip</button>` : "";
     const walk = !done(m.id) ? `<button class="btn tiny" data-walk="${m.id}">歩く Walk</button>` : "";
     const ride = !done(m.id) && place && dist(here(), place) > 450 ? `<button class="btn tiny" data-ride-mission="${m.id}">電車 Train</button>` : "";
     return `<button class="quest-item${on}${dn}" data-mission="${m.id}">
       <span>${GLYPH[m.glyph] || ""}</span>
-      <span><span class="t">${check}${esc(m.titleJa)} ${badge}</span><span class="s">${esc(m.title)} · ${esc(m.areaJa)}</span></span>
+      <span><span class="t">${check}${esc(m.titleJa)} ${badge}</span><span class="s">${esc(m.title)} · ${esc(m.areaJa)}${esc(shut)}</span></span>
       <span class="dist" data-dist="${m.id}">${esc(d)}</span>
     </button>
     <div class="row-actions">${walk}${ride}${tipBtn}</div>`;
@@ -416,13 +531,16 @@ function closeSheet(id) {
 
 function renderTrain() {
   const box = document.getElementById("train-list");
-  box.innerHTML = STATIONS.map((s) => {
+  const rows = STATIONS.filter((s) => !s.east || state.east).map((s) => {
     const d = formatDist(dist(here(), s));
     return `<button class="train-row" data-station="${s.id}">
       <span><b>${esc(s.nameJa)}</b> ${esc(s.name)}<br><small style="color:var(--ink-soft)">${esc(s.line)}</small></span>
       <span class="dist">${esc(d)}</span>
     </button>`;
   }).join("");
+  const pass = state.east ? "" : `<button class="btn primary" id="buy-east" type="button" style="width:100%;margin-bottom:8px">東東京パス ¥500</button>
+    <p class="sub">Asakusa, Ueno, Akihabara, and Ginza. Real stations, a temple, a market, a capsule hall.</p>`;
+  box.innerHTML = pass + rows;
 }
 
 function rideTo(station) {
@@ -467,7 +585,10 @@ function wardFor(place) {
     [/吉祥寺/, "Musashino", "武蔵野市"],
     [/神楽坂/, "Shinjuku", "新宿区"],
     [/谷中|千駄木/, "Taito", "台東区"],
-    [/虎ノ門|神谷|タワー|港/, "Minato", "港区"]
+    [/虎ノ門|神谷|タワー|港/, "Minato", "港区"],
+    [/浅草|上野|アメ|仲見|雷門/, "Taito", "台東区"],
+    [/秋葉|神田/, "Chiyoda", "千代田区"],
+    [/銀座|有楽|産直/, "Chuo", "中央区"]
   ];
   for (const [re, en, ja] of table) if (re.test(blob)) return { en, ja };
   return { en: "Tokyo", ja: "東京" };
@@ -515,28 +636,99 @@ function clockLabel() {
 
 function applySky() {
   const el = document.getElementById("map");
+  if (!el) return;
   el.classList.toggle("evening", state.hour >= 17 && state.hour < 19);
   el.classList.toggle("night", state.hour >= 19 || state.hour < 6);
+  syncLanterns();
+}
+function syncLanterns() {
+  lanternMarkers.forEach((mk) => mk.remove());
+  lanternMarkers = [];
+  if (!map) return;
+  const on = state.hour >= 17 || state.hour < 6;
+  if (!on) return;
+  LANTERN_SPOTS.forEach(([lat, lng]) => {
+    const el = document.createElement("div");
+    el.className = "lantern-glow";
+    lanternMarkers.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([lng, lat]).addTo(map));
+  });
 }
 
 function closedReason(mission) {
-  if (mission.id === "lion" && (state.hour < 11 || state.hour >= 22)) return "The kissaten is dark. Records start at 11.";
-  if (mission.id === "ramen" && state.hour < 11) return "The noren is still down. Ramen starts at 11.";
-  return "";
+  const h = hoursOf(mission);
+  if (!h || placeOpen(mission)) return "";
+  return h[2];
 }
 
 function maybeEncounter() {
   state.walked = 0;
-  if (state.busy || Math.random() > 0.45) return;
+  if (state.busy || Math.random() > 0.42) return;
+  const pool = ["cat", "tourist"];
+  if (state.hour >= 11 && state.hour < 21) pool.push("performer");
+  if (state.hour >= 17) pool.push("matsuri");
+  openEncounter(pool[Math.floor(Math.random() * pool.length)]);
+}
+function openEncounter(kind) {
+  const copy = {
+    cat: ["道の猫", "A cat is sitting in the lane, washing one ear.", "なでる Pet"],
+    tourist: ["迷子", "Someone is turning a paper map upside down. They want the station.", "案内する Point the way"],
+    performer: ["路上ライブ", "A case is open. Clap three times when the dot sits in the green.", "拍手する Clap"],
+    matsuri: ["小さな祭り", "Two lanterns and a drum have taken over a side street.", "のぞく Peek"]
+  }[kind];
   state.busy = true;
-  const cat = Math.random() < 0.6;
-  document.getElementById("enc-title").textContent = cat ? "道の猫" : "迷子";
-  document.getElementById("enc-body").textContent = cat
-    ? "A cat is sitting in the middle of the lane, washing one ear."
-    : "Someone with a paper map is turning it upside down. They are looking for the station.";
-  document.getElementById("enc-yes").textContent = cat ? "なでる Pet" : "案内する Point the way";
-  document.getElementById("encounter").hidden = false;
-  document.getElementById("encounter").dataset.kind = cat ? "cat" : "tourist";
+  document.getElementById("enc-title").textContent = copy[0];
+  document.getElementById("enc-body").textContent = copy[1];
+  document.getElementById("enc-yes").hidden = false;
+  document.getElementById("enc-yes").textContent = copy[2];
+  document.getElementById("enc-play").innerHTML = "";
+  const box = document.getElementById("encounter");
+  box.hidden = false;
+  box.dataset.kind = kind;
+}
+function resolveEncounter(kind) {
+  cancelAnimationFrame(performerFrame);
+  if (kind === "cat") {
+    state.yen += 40;
+    giveToy({ id: "street-cat", name: "Street hello", nameJa: "道の猫" });
+  } else if (kind === "tourist") {
+    state.yen += 80;
+  } else if (kind === "performer") {
+    state.yen += 70;
+    giveToy({ id: "clap", name: "Encore", nameJa: "アンコール" });
+  } else if (kind === "matsuri") {
+    state.yen += 100;
+    giveToy({ id: "matsuri", name: "Little festival", nameJa: "小さな祭り" });
+  }
+  document.getElementById("encounter").hidden = true;
+  state.busy = false;
+  chime();
+  renderHud();
+  save();
+}
+function startPerformer() {
+  document.getElementById("enc-yes").hidden = true;
+  document.getElementById("enc-play").innerHTML = `<div class="timing"><div class="zone"></div><div class="dot" id="perf-dot"></div></div>
+    <button class="btn primary" id="perf-tap" style="width:100%;margin-top:8px">いま Clap</button>
+    <p class="sub" id="perf-count">0 / 3</p>`;
+  let hits = 0;
+  const t0 = performance.now();
+  const dot = document.getElementById("perf-dot");
+  const loop = (now) => {
+    const phase = ((now - t0) % 1400) / 1400;
+    const x = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
+    dot.style.left = (8 + x * 84) + "%";
+    dot.dataset.x = String(x);
+    performerFrame = requestAnimationFrame(loop);
+  };
+  performerFrame = requestAnimationFrame(loop);
+  document.getElementById("perf-tap").onclick = () => {
+    const x = Number(dot.dataset.x || 0);
+    if (x > 0.42 && x < 0.58) {
+      hits += 1;
+      document.getElementById("perf-count").textContent = hits + " / 3";
+      if (hits >= 3) resolveEncounter("performer");
+    } else showToast("The beat slipped. Try the green gap.");
+  };
 }
 
 function showScene(mission) {
@@ -559,19 +751,33 @@ function openCard(place) {
   const why = closedReason(mission);
   showScene(mission);
   if (why) {
+    document.querySelector("#scene .card").classList.add("notice");
+    const opens = (hoursOf(mission) || [11])[0];
     document.getElementById("card-body").innerHTML = `<h3>${esc(mission.titleJa)}</h3><p>${esc(why)}</p>
-      <button class="btn primary" id="wait-open" style="width:100%">11時まで待つ Wait until 11</button>`;
-    document.getElementById("wait-open").onclick = () => { state.hour = 11; applySky(); openCard(place); };
+      <button class="btn primary" id="wait-open" style="width:100%">${opens}時まで待つ Wait until ${opens}</button>`;
+    document.getElementById("wait-open").onclick = () => {
+      const h = hoursOf(mission);
+      state.hour = h ? h[0] : 11;
+      applySky();
+      renderHud();
+      openCard(place);
+    };
     return;
   }
   renderCard();
 }
+function stopMinis() {
+  clearTimeout(rhythmTimer);
+  cancelAnimationFrame(timingFrame);
+  cancelAnimationFrame(performerFrame);
+}
 function closeCard() {
   const place = cardPlace;
   const wasReward = cardMode === "reward";
+  stopMinis();
   if (locMap) { locMap.remove(); locMap = null; }
   const card = document.querySelector("#scene .card");
-  if (card) card.classList.remove("loc");
+  if (card) card.classList.remove("loc", "notice");
   cancelAnimationFrame(timingFrame);
   document.getElementById("scene").hidden = true;
   state.busy = false;
@@ -613,9 +819,13 @@ function renderCard() {
     return;
   }
   body.parentElement.classList.remove("loc");
+  body.parentElement.classList.remove("notice");
   const badge = m.secret ? '<span class="badge">ひみつ Local secret</span>' : "";
   let controls = "";
-  if (m.kind === "choice") {
+  if (cardMode === "fortune" || m.kind === "fortune") {
+    controls = `<p>${esc(m.promptJa || "おみくじ")}</p><p class="sub">${esc(m.prompt || "Draw a fortune.")}</p>
+      <button class="btn primary" data-fortune="1" style="width:100%">おみくじを引く Draw</button>`;
+  } else if (m.kind === "choice") {
     controls = `<p>${esc(m.promptJa)}</p><p class="sub">${esc(m.prompt)}</p><div class="choices">` +
       m.choices.map((c) => `<button class="choice" data-choice="${esc(c.id)}"><b>${esc(c.label)}</b><span>${esc(c.sub)}</span></button>`).join("") +
       "</div>";
@@ -624,11 +834,24 @@ function renderCard() {
     const step = m.steps[ritual];
     controls = `<p>${esc(m.promptJa)}</p><p class="sub">${esc(m.prompt)}</p><div class="steps">${dots}</div>
       <button class="btn primary" data-ritual="1" style="width:100%">${esc(step.label)} · ${esc(step.sub)}</button>`;
-  } else if (m.kind === "timing") {
-    controls = `<p>${esc(m.promptJa || "ドアが閉まる")}</p><p class="sub">${esc(m.prompt || "Tap when the dot is in the door.")}</p>
+  } else if (m.kind === "timing" || m.kind === "thermo") {
+    const ja = m.kind === "thermo" ? "ちょうどいい湯" : (m.promptJa || "ドアが閉まる");
+    controls = `<p>${esc(ja)}</p><p class="sub">${esc(m.prompt || "")}</p>
       <div class="timing"><div class="zone"></div><div class="dot" id="timing-dot"></div></div>
-      <button class="btn primary" id="timing-tap" style="width:100%">いま Now</button>`;
-    requestAnimationFrame(runTiming);
+      <button class="btn primary" id="timing-tap" style="width:100%">${m.kind === "thermo" ? "止める Stop" : "いま Now"}</button>`;
+    requestAnimationFrame(() => runTiming(m.reward || "Nice timing."));
+  } else if (m.kind === "rhythm") {
+    controls = `<p>${esc(m.promptJa || "")}</p><p class="sub">${esc(m.prompt || "")}</p>
+      <div class="rhythm">
+        <button type="button" data-beat="0">す</button>
+        <button type="button" data-beat="1">す</button>
+        <button type="button" data-beat="2">る</button>
+      </div>`;
+    requestAnimationFrame(runRhythm);
+  } else if (m.kind === "gacha") {
+    controls = `<p>${esc(m.promptJa || "")}</p><p class="sub">${esc(m.prompt || "")} · 所持 ¥${state.yen}</p>
+      <div class="capsule" id="capsule-stage">?</div>
+      <button class="btn primary" id="gacha-pull" style="width:100%">まわす ¥200</button>`;
   } else if (m.kind === "wait") {
     controls = `<div class="light" id="light"></div><p id="wait-label">${esc(m.waitTextJa)}</p><p class="sub">${esc(m.waitText)}</p>
       <button class="btn primary" data-confirm="1" id="wait-btn" disabled style="width:100%">${esc(m.buttonJa)} ${esc(m.button)}</button>`;
@@ -675,11 +898,11 @@ function mountLocMap(place) {
   locMap.on("load", () => locMap && locMap.resize());
 }
 
-function runTiming() {
+function runTiming(successLine) {
   const dot = document.getElementById("timing-dot");
   const btn = document.getElementById("timing-tap");
   if (!dot || !btn) return;
-  let t0 = performance.now();
+  const t0 = performance.now();
   const loop = (now) => {
     const phase = ((now - t0) % 1600) / 1600;
     const x = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
@@ -692,15 +915,83 @@ function runTiming() {
     const x = Number(dot.dataset.x || 0);
     if (x > 0.42 && x < 0.58) {
       cancelAnimationFrame(timingFrame);
-      finish("You slipped through just as the doors kissed shut.");
+      finish(successLine || "You slipped through just as the doors kissed shut.");
     } else {
-      showToast("The doors shut. Try the green gap again.");
+      showToast("Not in the green. Try again.");
     }
   };
+}
+function runRhythm() {
+  const buttons = [...document.querySelectorAll("[data-beat]")];
+  if (!buttons.length) return;
+  rhythmHits = 0;
+  let i = 0;
+  const tick = () => {
+    rhythmStep = i;
+    buttons.forEach((b, n) => b.classList.toggle("lit", n === i));
+    i = (i + 1) % buttons.length;
+    rhythmTimer = setTimeout(tick, 720);
+  };
+  tick();
+}
+function pullGacha() {
+  if (state.yen < 200) {
+    showToast("¥200 is needed. You have ¥" + state.yen + ".");
+    return;
+  }
+  state.yen -= 200;
+  const rare = state.charm === "kaiun" ? 0.45 : 0.18;
+  const wantRare = Math.random() < rare;
+  const pool = CAPSULES.filter((c) => c.rare === wantRare);
+  const item = pool[Math.floor(Math.random() * pool.length)];
+  const stage = document.getElementById("capsule-stage");
+  if (state.capsules.includes(item.id)) {
+    state.yen += 40;
+    if (stage) stage.textContent = item.nameJa + " · again +¥40";
+    showToast(item.nameJa + " again. ¥40 back.");
+  } else {
+    state.capsules.push(item.id);
+    if (state.capsules.length >= 4) grantBadge("collector");
+    if (stage) stage.textContent = item.nameJa + (item.rare ? " · rare" : "");
+    chime();
+  }
+  renderHud();
+  if (!done("gacha")) finish("The capsule was a " + item.name + ".");
+  else save();
+}
+function drawFortune() {
+  const slip = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
+  let extra = "";
+  const left = CHARMS.filter((c) => !state.charms.includes(c.id));
+  if (left.length) {
+    const c = left[Math.floor(Math.random() * left.length)];
+    state.charms.push(c.id);
+    if (!state.charm) state.charm = c.id;
+    extra = " Omamori: " + c.nameJa + ". " + c.perk;
+    grantBadge("charm");
+  }
+  state.yen += slip.id === "daikichi" ? 80 : 20;
+  finish(slip.name + ". " + slip.line + extra);
 }
 
 function priceOf(id) { return PRICE[id] || 0; }
 
+function noteDay() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (state.lastDate !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    state.streak = state.lastDate === yesterday ? (state.streak || 0) + 1 : 1;
+    state.lastDate = today;
+    state.todayCount = 0;
+  }
+  state.todayCount += 1;
+  if (state.todayCount >= 3 && state.goalDone !== today) {
+    state.goalDone = today;
+    state.yen += 150;
+    grantBadge("daily");
+    showToast("今日の目標、3つ。 +¥150");
+  }
+}
 function finish(detailLine) {
   const m = missionById(cardPlace.mission);
   const cost = priceOf(m.id);
@@ -709,9 +1000,14 @@ function finish(detailLine) {
     return;
   }
   state.yen -= cost;
-  state.yen += EARN[m.id] ?? 170;
+  let pay = EARN[m.id] ?? 170;
+  if (state.charm === "kinun") pay = Math.round(pay * 1.25);
+  if (state.charm === "kenko" && m.id === "sento") pay += 40;
+  state.yen += pay;
+  if (m.secret) grantBadge("secret");
+  if (state.hour >= 19) grantBadge("night");
   state.hour = state.hour >= 22 ? 8 : state.hour + 1;
-  if (m.id === "shrine" && !state.toys.some((t) => t.id === "omamori")) state.toys.push(TOYS[0]);
+  noteDay();
   if ((m.id === "onigiri" || m.id === "vending") && Math.random() < 0.55) {
     const left = TOYS.filter((t) => !state.toys.some((owned) => owned.id === t.id));
     if (left.length) state.toys.push(left[Math.floor(Math.random() * left.length)]);
@@ -784,15 +1080,41 @@ function bind() {
     const confirmBtn = e.target.closest("[data-confirm]");
     const ritualBtn = e.target.closest("[data-ritual]");
     const cont = e.target.closest("#card-continue");
+    const beat = e.target.closest("[data-beat]");
+    const pull = e.target.closest("#gacha-pull");
+    const fortune = e.target.closest("[data-fortune]");
     if (choice) {
       const m = missionById(cardPlace.mission);
       const c = m.choices.find((x) => x.id === choice.dataset.choice);
-      finish(c ? c.line : m.reward);
+      let line = c ? c.line : m.reward;
+      if (m.want && c && c.id === m.want) {
+        state.yen += 40;
+        line += " The sign matches. +¥40.";
+      }
+      finish(line);
+    } else if (beat) {
+      if (Number(beat.dataset.beat) === rhythmStep) {
+        rhythmHits += 1;
+        if (rhythmHits >= 3) {
+          clearTimeout(rhythmTimer);
+          const m = missionById(cardPlace.mission);
+          finish(m.reward || "You slurped on the beat.");
+        }
+      } else {
+        rhythmHits = 0;
+        showToast("Off the beat. Follow the glowing bowl.");
+      }
+    } else if (pull) {
+      pullGacha();
+    } else if (fortune) {
+      drawFortune();
     } else if (ritualBtn) {
       const m = missionById(cardPlace.mission);
       ritual += 1;
-      if (ritual >= m.steps.length) finish(m.reward);
-      else renderCard();
+      if (ritual >= m.steps.length) {
+        if (m.fortune) { cardMode = "fortune"; renderCard(); }
+        else finish(m.reward);
+      } else renderCard();
     } else if (confirmBtn && !confirmBtn.disabled) {
       const m = missionById(cardPlace.mission);
       finish(m.reward);
@@ -835,6 +1157,23 @@ function bind() {
   document.getElementById("btn-train").addEventListener("click", () => { renderTrain(); document.getElementById("train").hidden = false; });
   document.getElementById("train-close").addEventListener("click", () => { document.getElementById("train").hidden = true; });
   document.getElementById("train-list").addEventListener("click", (e) => {
+    if (e.target.closest("#buy-east")) {
+      if (state.east) return;
+      if (state.yen < 500) {
+        showToast("¥500 is needed. You have ¥" + state.yen + ".");
+        return;
+      }
+      state.yen -= 500;
+      state.east = true;
+      grantBadge("east");
+      save();
+      renderHud();
+      renderQuest();
+      renderTrain();
+      buildMarkers();
+      showToast("East stations are on the board.");
+      return;
+    }
     const row = e.target.closest("[data-station]");
     if (!row) return;
     const st = STATIONS.find((s) => s.id === row.dataset.station);
@@ -848,17 +1187,18 @@ function bind() {
     else startAmbient();
     renderHud(); save();
   });
-  document.getElementById("btn-book").addEventListener("click", () => {
-    const box = document.getElementById("book-list");
-    const toys = state.toys.map((t) => t.nameJa).join(" · ");
-    document.getElementById("book-blurb").textContent = state.stamps.length + " places · " + (toys || "no charms yet");
-    box.innerHTML = state.stamps.map((s) => `<button class="train-row" data-stamp="${esc(s.missionId)}">
-      <span><b>${esc(s.nameJa)}</b><br><small style="color:var(--ink-soft)">${esc(s.wardJa)} · ${esc(s.stationJa)}</small></span>
-      <span class="dist">地図</span></button>`).join("") || "<p>No stamps yet. Finish a quest.</p>";
-    document.getElementById("book").hidden = false;
-  });
+  document.getElementById("btn-book").addEventListener("click", () => renderBook());
+  document.getElementById("book-tab-places").addEventListener("click", () => { state.bookTab = "places"; renderBook(); });
+  document.getElementById("book-tab-toys").addEventListener("click", () => { state.bookTab = "toys"; renderBook(); });
   document.getElementById("book-close").addEventListener("click", () => { document.getElementById("book").hidden = true; });
   document.getElementById("book-list").addEventListener("click", (e) => {
+    const charm = e.target.closest("[data-charm]");
+    if (charm && state.charms.includes(charm.dataset.charm)) {
+      state.charm = charm.dataset.charm;
+      save();
+      renderBook();
+      return;
+    }
     const row = e.target.closest("[data-stamp]");
     if (!row) return;
     const s = state.stamps.find((x) => x.missionId === row.dataset.stamp);
@@ -869,17 +1209,21 @@ function bind() {
   });
   document.getElementById("enc-yes").addEventListener("click", () => {
     const kind = document.getElementById("encounter").dataset.kind;
-    state.yen += kind === "cat" ? 40 : 80;
-    if (kind === "cat" && !state.toys.some((t) => t.id === "street-cat")) state.toys.push({ id: "street-cat", name: "Street hello", nameJa: "道の猫" });
-    document.getElementById("encounter").hidden = true;
-    state.busy = false;
-    chime();
-    renderHud();
-    save();
+    if (kind === "performer") { startPerformer(); return; }
+    resolveEncounter(kind);
   });
   document.getElementById("enc-no").addEventListener("click", () => {
+    cancelAnimationFrame(performerFrame);
     document.getElementById("encounter").hidden = true;
     state.busy = false;
+  });
+  document.getElementById("coach-next").addEventListener("click", () => {
+    state.coach += 1;
+    if (state.coach >= COACH.length) {
+      state.introduced = true;
+      document.getElementById("coach").hidden = true;
+      save();
+    } else showCoach();
   });
   document.getElementById("btn-hurry").addEventListener("click", () => {
     state.hurry = !state.hurry;
@@ -979,6 +1323,40 @@ function startAmbient() {
   tick();
 }
 
+function showCoach() {
+  const el = document.getElementById("coach");
+  if (!el) return;
+  if (state.coach >= COACH.length) { el.hidden = true; return; }
+  el.hidden = false;
+  document.getElementById("coach-text").textContent = COACH[state.coach];
+  document.getElementById("coach-next").textContent = state.coach === COACH.length - 1 ? "はじめる OK" : "つぎへ Next";
+}
+function renderBook() {
+  const blurb = document.getElementById("book-blurb");
+  const box = document.getElementById("book-list");
+  document.getElementById("book-tab-places").classList.toggle("on", state.bookTab !== "toys");
+  document.getElementById("book-tab-toys").classList.toggle("on", state.bookTab === "toys");
+  if (state.bookTab === "toys") {
+    blurb.textContent = rankName() + " · streak " + (state.streak || 0) + " · today " + (state.todayCount || 0) + "/3";
+    const badges = (state.badges || []).map((id) => `<span class="badge">${esc(BADGE_NAME[id] || id)}</span>`).join("") || "<span class=\"sub\">No badges yet.</span>";
+    const charms = CHARMS.map((c) => {
+      const owned = state.charms.includes(c.id);
+      return `<button class="toy${state.charm === c.id ? " on" : ""}" type="button" data-charm="${c.id}" ${owned ? "" : "disabled"}><b>${esc(c.nameJa)}</b><small>${owned ? esc(c.perk) : "—"}</small></button>`;
+    }).join("");
+    const caps = CAPSULES.map((c) => {
+      const owned = state.capsules.includes(c.id);
+      return `<div class="toy${owned ? " on" : ""}"><b>${owned ? esc(c.nameJa) : "?"}</b><small>${c.rare ? "rare" : "capsule"}</small></div>`;
+    }).join("");
+    const found = state.toys.map((t) => `<div class="toy on"><b>${esc(t.nameJa)}</b><small>found</small></div>`).join("");
+    box.innerHTML = `<div class="badge-row">${badges}</div><p class="sub">Omamori. Tap one you own to carry it.</p><div class="toy-grid">${charms}</div><p class="sub">Gachapon</p><div class="toy-grid">${caps}</div><div class="toy-grid">${found}</div>`;
+  } else {
+    blurb.textContent = state.stamps.length + " places";
+    box.innerHTML = state.stamps.map((s) => `<button class="train-row" data-stamp="${esc(s.missionId)}">
+      <span><b>${esc(s.nameJa)}</b><br><small style="color:var(--ink-soft)">${esc(s.wardJa)} · ${esc(s.stationJa)}</small></span>
+      <span class="dist">地図</span></button>`).join("") || "<p>No stamps yet. Finish a quest.</p>";
+  }
+  document.getElementById("book").hidden = false;
+}
 function startGame(fromSave) {
   backfillStamps();
   document.getElementById("select").hidden = true;
@@ -987,15 +1365,10 @@ function startGame(fromSave) {
   bind();
   renderHud();
   renderQuest();
+  applySky();
   const desktop = window.matchMedia("(min-width: 900px)").matches;
   document.getElementById("quest").hidden = !desktop;
-  if (!state.introduced) {
-    state.introduced = true;
-    save();
-    showToast("Arrows or WASD to walk, Shift to hurry, or tap the map. Pins are real places.");
-  } else if (fromSave) {
-    showToast("つづきから。 Stamps restored on this device.");
-  }
+  if (fromSave) showToast("つづきから。 Stamps restored on this device.");
   requestAnimationFrame(frame);
 }
 
@@ -1034,6 +1407,21 @@ function bootSelect() {
     state.completed = {};
     state.activeId = "scramble";
     state.introduced = false;
+    state.yen = 800;
+    state.hour = 9;
+    state.stamps = [];
+    state.toys = [];
+    state.east = false;
+    state.capsules = [];
+    state.charms = [];
+    state.charm = null;
+    state.badges = [];
+    state.streak = 0;
+    state.lastDate = "";
+    state.todayCount = 0;
+    state.goalDone = "";
+    state.coach = 0;
+    state.walked = 0;
     save();
     startGame(false);
   });
@@ -1053,7 +1441,17 @@ function bootSelect() {
       yen: data.yen ?? 800,
       hour: data.hour ?? 9,
       stamps: data.stamps || [],
-      toys: data.toys || []
+      toys: data.toys || [],
+      east: !!data.east,
+      capsules: data.capsules || [],
+      charms: data.charms || [],
+      charm: data.charm || null,
+      badges: data.badges || [],
+      streak: data.streak || 0,
+      lastDate: data.lastDate || "",
+      todayCount: data.todayCount || 0,
+      goalDone: data.goalDone || "",
+      coach: data.coach ?? 99
     });
     backfillStamps();
     startGame(true);

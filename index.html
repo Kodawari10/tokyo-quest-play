@@ -98,14 +98,23 @@
       <div class="card">
         <button id="book-close" class="x" aria-label="Close">×</button>
         <h3>手帳 Stamp book</h3>
+        <div class="tabs">
+          <button id="book-tab-places" class="tab on" type="button">場所 Places</button>
+          <button id="book-tab-toys" class="tab" type="button">コレクション</button>
+        </div>
         <p class="sub" id="book-blurb"></p>
         <div id="book-list" class="train-list"></div>
       </div>
+    </div>
+    <div id="coach" class="coach" hidden>
+      <p id="coach-text"></p>
+      <button id="coach-next" class="btn primary" type="button">つぎへ Next</button>
     </div>
     <div id="encounter" class="modal" hidden>
       <div class="card">
         <h3 id="enc-title">にゃ</h3>
         <p id="enc-body"></p>
+        <div id="enc-play"></div>
         <button id="enc-yes" class="btn primary" style="width:100%;margin-top:8px">なでる Pet</button>
         <button id="enc-no" class="btn" style="width:100%;margin-top:8px">そのまま Walk on</button>
       </div>
@@ -127,7 +136,8 @@
         <p><b>日常</b> are ordinary Tokyo errands: an onigiri, the scramble, a station stamp, ramen, a vending machine, Yoyogi Park, Meiji Jingu, Tokyo Tower.</p>
         <p><b>ひみつ</b> are neighborhood things, marked with a gold badge. Each one ends with a short local tip. Read it again from the quest list.</p>
         <p><b>電車</b> drops you at a real station so Gotokuji, Yanaka, or Kichijoji are a ride plus a short walk, not an hour of holding an arrow.</p>
-        <p>Each quest opens a cartoon of that real place, with you in the picture. Then you step back onto the map and the stamp stays.</p>
+        <p>Each quest opens a cartoon of that real place, with you in the picture. The location card names the real spot, and 📓 keeps the stamp, your omamori, and your capsules.</p>
+        <p>Some alleys open after dark and some markets only in the daytime. The clock moves when you finish a quest. ¥500 on the train board opens Asakusa, Ueno, Akihabara, and Ginza.</p>
         <p>You can cross blocks freely. The map underneath is real; the tiles are softened so the day feels like a picture book.</p>
         <p>The map is drawn from OpenStreetMap roads, parks, water, and buildings, in a pastel cartoon style. Tiles © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, © <a href="https://openmaptiles.org/">OpenMapTiles</a>, <a href="https://openfreemap.org">OpenFreeMap</a>. Places were read on 2026-11-17. Data © OpenStreetMap contributors, ODbL.</p>
         <p>Change who is walking. Stamps stay.</p>
