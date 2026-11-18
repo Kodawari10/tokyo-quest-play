@@ -1,11 +1,17 @@
 /* Original pastel scenes for each quest. One illustration per real place. */
 function stage(id, top, bottom, inner) {
+  const petals = [0, 1, 2, 3, 4].map((i) =>
+    `<circle class="scene-petal" cx="${90 + i * 180}" cy="${24 + (i % 2) * 16}" r="3.2" fill="${i % 2 ? "#f4b7c8" : "#f6e2a8"}" style="animation-delay:${i * 1.6}s"/>`
+  ).join("");
   return `<svg class="stage" viewBox="0 0 960 540" preserveAspectRatio="xMidYMin meet" role="img" aria-label="${id}">
     <defs><linearGradient id="sky-${id}" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${top}"/><stop offset="100%" stop-color="${bottom}"/>
     </linearGradient></defs>
     <rect width="960" height="540" fill="url(#sky-${id})"/>
+    <ellipse cx="760" cy="36" rx="120" ry="46" fill="#ffe7ae" opacity=".35"/>
+    ${cloud(150, 64, 1.05)} ${cloud(520, 78, 0.9)}
     ${inner}
+    ${petals}
   </svg>`;
 }
 
@@ -525,7 +531,61 @@ const SCENE_BUILDERS = {
   }
 };
 
+function dressRoof(x, y, w, fill) {
+  const m = x + w / 2;
+  const r = x + w;
+  return `<path d="M${x - 16} ${y + 18} Q${m} ${y - 28} ${r + 16} ${y + 18} L${r} ${y + 34} Q${m} ${y} ${x} ${y + 34} Z" fill="${fill || "#c45c4a"}" stroke="#a8483c" stroke-width="2"/>
+    <path d="M${x} ${y + 22} Q${m} ${y + 4} ${r} ${y + 22}" fill="none" stroke="#f0d7a0" stroke-width="2" opacity=".85"/>`;
+}
+function dressTorii(x, y, s) {
+  const k = s || 1;
+  return `<g transform="translate(${x},${y}) scale(${k})">
+    <rect x="0" y="0" width="120" height="14" rx="4" fill="#e15b5b"/>
+    <rect x="14" y="22" width="92" height="8" fill="#e15b5b"/>
+    <rect x="22" y="10" width="12" height="90" fill="#e15b5b"/>
+    <rect x="86" y="10" width="12" height="90" fill="#e15b5b"/>
+  </g>`;
+}
+function dressChochin(x, y, color) {
+  return `<g class="sway">
+    <line x1="${x + 8}" y1="${y - 16}" x2="${x + 8}" y2="${y}" stroke="#8a5a4a" stroke-width="2"/>
+    <rect x="${x}" y="${y}" width="16" height="22" rx="6" fill="${color || "#e15b5b"}"/>
+    <rect x="${x + 4}" y="${y + 6}" width="8" height="8" rx="2" fill="#ffe7ae"/>
+  </g>`;
+}
+function dressNoren(x, y, w, color) {
+  return `<path class="sway" d="M${x} ${y} h${w} v28 q${-w / 4} 8 ${-w / 2} 0 q${-w / 4} 8 ${-w / 2} 0 z" fill="${color || "#f28aaa"}"/>`;
+}
+function dressStone(x, y) {
+  return `<g>
+    <rect x="${x}" y="${y}" width="18" height="8" rx="2" fill="#d7d2c8"/>
+    <rect x="${x + 4}" y="${y + 8}" width="10" height="22" fill="#cfc8bc"/>
+    <circle cx="${x + 9}" cy="${y - 4}" r="4" fill="#ffe7ae"/>
+  </g>`;
+}
+function sceneDress(id) {
+  const shrine = new Set(["shrine", "kanda", "inari", "neko"]);
+  const temple = id === "senso";
+  const alley = new Set(["nonbei", "golden", "omoide", "hoppy", "harmonica", "yoko", "alleys"]);
+  const bath = id === "sento";
+  const eat = new Set(["ramen", "soba", "lion", "depachika"]);
+  const green = new Set(["park", "valley", "sky"]);
+  const market = new Set(["nakamise", "shotengai", "yanaka", "ameyoko", "dagashi"]);
+  if (temple) return dressTorii(40, 70, 1.1) + dressRoof(250, 90, 180) + dressChochin(200, 40, "#e15b5b") + dressChochin(760, 50, "#ffb15a") + dressStone(860, 160);
+  if (shrine.has(id)) return dressTorii(30, 80, 1) + dressStone(820, 150) + dressRoof(620, 70, 140);
+  if (alley.has(id)) return dressChochin(80, 40, "#e15b5b") + dressChochin(180, 28, "#ffb15a") + dressChochin(800, 36, "#e15b5b") + dressRoof(40, 120, 160, "#8a5a4a") + dressNoren(70, 150, 70, "#6a4038");
+  if (bath) return dressRoof(80, 60, 200) + dressNoren(120, 100, 90, "#3d7ea8") + `<ellipse class="steam" cx="200" cy="40" rx="16" ry="8" fill="#fff" opacity=".7"/>`;
+  if (eat.has(id)) return dressNoren(40, 80, 80, "#e15b5b") + dressRoof(500, 40, 160, "#8a5a4a") + `<ellipse class="steam" cx="160" cy="70" rx="12" ry="6" fill="#fff" opacity=".75"/>`;
+  if (green.has(id)) return dressStone(70, 120) + dressStone(840, 140) + `<ellipse cx="200" cy="80" rx="28" ry="16" fill="#8ed4a8"/>`;
+  if (market.has(id)) return dressRoof(20, 70, 200) + dressRoof(700, 60, 180, "#e07a4a") + dressNoren(80, 110, 80) + dressChochin(640, 30, "#ffb15a");
+  if (id === "station") return dressRoof(600, 40, 220, "#d7e4f2");
+  if (id === "tower") return dressChochin(60, 40, "#ffb15a");
+  if (id === "gacha") return dressRoof(40, 80, 140, "#f4d2dc");
+  if (id === "onigiri") return `<rect x="40" y="40" width="70" height="16" rx="2" fill="#f28aaa"/><rect x="40" y="40" width="14" height="16" fill="#fff"/><rect x="68" y="40" width="14" height="16" fill="#fff"/>`;
+  if (id === "vintage") return dressRoof(40, 80, 160, "#8a5a4a") + `<path d="M30 70 h16 v14 h-6 l-4 12 h-6z" fill="#d5ecff"/>`;
+  return dressRoof(30, 70, 120, "#f4d2dc");
+}
 function renderScene(missionId) {
   const build = SCENE_BUILDERS[missionId] || SCENE_BUILDERS.scramble;
-  return build();
+  return build().replace("</svg>", sceneDress(missionId) + "</svg>");
 }

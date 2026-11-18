@@ -8,6 +8,7 @@ const FILES = [
   "./js/characters.js",
   "./js/world.js",
   "./js/scenes.js",
+  "./js/houses.js",
   "./js/game.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

@@ -366,7 +366,7 @@ const MISSIONS = [
     tip: "Neighborhood shrines like this sit on a footprint smaller than a shop. Fushimi Hibuse Inari is a fire-prevention Inari tucked into the Kagurazaka alleys, the kind of guardian a wooden quarter would want. You can bow as you pass. No ticket, no crowd, no need to clap unless you want to."
   },
   {
-    id: "senso", secret: false, east: true, glyph: "torii", area: "Asakusa", areaJa: "浅草",
+    id: "senso", secret: false, east: true, glyph: "pagoda", area: "Asakusa", areaJa: "浅草",
     title: "Senso-ji", titleJa: "浅草寺",
     blurb: "The main hall at Senso-ji. Nakamise is the shop street in front.",
     verb: "Visit", verbJa: "参る",

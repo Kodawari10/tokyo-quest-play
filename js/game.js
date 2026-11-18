@@ -123,10 +123,11 @@ const state = {
   todayCount: 0,
   goalDone: "",
   coach: 0,
-  bookTab: "places"
+  bookTab: "places",
+  rain: false
 };
 
-let map, player, poiMarkers = [], lanternMarkers = [], audioCtx, locMap, musicTimer, timingFrame, rhythmTimer, performerFrame;
+let map, player, poiMarkers = [], lanternMarkers = [], landmarkMarkers = [], audioCtx, locMap, musicTimer, timingFrame, rhythmTimer, performerFrame, rainGain;
 let rhythmStep = 0;
 let rhythmHits = 0;
 let lastTs = 0;
@@ -192,7 +193,8 @@ function save() {
     lastDate: state.lastDate,
     todayCount: state.todayCount,
     goalDone: state.goalDone,
-    coach: state.coach
+    coach: state.coach,
+    rain: !!state.rain
   };
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { /* ignore quota */ }
   movedSinceSave = false;
@@ -311,9 +313,13 @@ function initMap() {
   el.className = "char-marker";
   el.innerHTML = spriteHtml();
   player = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([state.lng, state.lat]).addTo(map);
+  map.on("zoom", syncZoomChrome);
   map.on("load", () => {
     buildMarkers();
+    buildLandmarks();
+    buildAtmosphere();
     applySky();
+    syncZoomChrome();
     if (!state.introduced && state.coach < COACH.length) showCoach();
     const inner = document.querySelector(".maplibregl-ctrl-attrib-inner");
     if (inner && !/OpenStreetMap/.test(inner.textContent)) {
@@ -357,7 +363,8 @@ function buildMarkers() {
     const el = document.createElement("button");
     el.type = "button";
     el.className = "pin-marker";
-    el.innerHTML = `<div class="${cls}"><span>${GLYPH[m.glyph] || ""}</span></div>`;
+    const art = (HOUSE[m.glyph] || HOUSE.lane)();
+    el.innerHTML = `<div class="${cls}">${art}<em class="pin-tag">${esc(p.nameJa)}</em></div>`;
     el.addEventListener("click", (ev) => {
       ev.stopPropagation();
       if (state.busy) return;
@@ -506,7 +513,7 @@ function renderQuest() {
     const walk = !done(m.id) ? `<button class="btn tiny" data-walk="${m.id}">歩く Walk</button>` : "";
     const ride = !done(m.id) && place && dist(here(), place) > 450 ? `<button class="btn tiny" data-ride-mission="${m.id}">電車 Train</button>` : "";
     return `<button class="quest-item${on}${dn}" data-mission="${m.id}">
-      <span>${GLYPH[m.glyph] || ""}</span>
+      <span class="q-ico">${(HOUSE[m.glyph] || HOUSE.lane)()}</span>
       <span><span class="t">${check}${esc(m.titleJa)} ${badge}</span><span class="s">${esc(m.title)} · ${esc(m.areaJa)}${esc(shut)}</span></span>
       <span class="dist" data-dist="${m.id}">${esc(d)}</span>
     </button>
@@ -637,9 +644,17 @@ function clockLabel() {
 function applySky() {
   const el = document.getElementById("map");
   if (!el) return;
-  el.classList.toggle("evening", state.hour >= 17 && state.hour < 19);
-  el.classList.toggle("night", state.hour >= 19 || state.hour < 6);
+  const evening = state.hour >= 17 && state.hour < 19;
+  const night = state.hour >= 19 || state.hour < 6;
+  el.classList.toggle("evening", evening);
+  el.classList.toggle("night", night);
+  el.classList.toggle("rainy", !!state.rain);
+  if (map && map.getLayer("dusk-wash")) {
+    map.setPaintProperty("dusk-wash", "fill-opacity", evening ? 0.2 : 0);
+    map.setPaintProperty("night-wash", "fill-opacity", night ? 0.5 : 0);
+  }
   syncLanterns();
+  syncLandmarks();
 }
 function syncLanterns() {
   lanternMarkers.forEach((mk) => mk.remove());
@@ -652,6 +667,54 @@ function syncLanterns() {
     el.className = "lantern-glow";
     lanternMarkers.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([lng, lat]).addTo(map));
   });
+}
+const LANDMARKS = [
+  { kind: "pagoda", name: "五重塔", lat: 35.7141, lng: 139.79604 },
+  { kind: "torii", name: "大鳥居", lat: 35.67399, lng: 139.7014 },
+  { kind: "tower", name: "東京タワー", lat: 35.65856, lng: 139.74544 },
+  { kind: "skytree", name: "スカイツリー", lat: 35.71005, lng: 139.81071 }
+];
+function buildLandmarks() {
+  if (!map || landmarkMarkers.length) return;
+  LANDMARKS.forEach((spot) => {
+    const el = document.createElement("div");
+    el.className = "landmark";
+    el.innerHTML = `${landmarkSvg(spot.kind)}<em>${spot.name}</em>`;
+    landmarkMarkers.push(new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([spot.lng, spot.lat]).addTo(map));
+  });
+}
+function syncLandmarks() {
+  if (!map) return;
+  const z = map.getZoom();
+  const show = z >= 12.4 && z <= 15.6;
+  landmarkMarkers.forEach((mk) => { mk.getElement().style.display = show ? "" : "none"; });
+}
+function syncZoomChrome() {
+  const el = document.getElementById("map");
+  if (!el || !map) return;
+  el.classList.toggle("named", map.getZoom() >= 15.4);
+  syncLandmarks();
+}
+function buildAtmosphere() {
+  if (document.getElementById("atmosphere")) return;
+  const root = document.createElement("div");
+  root.id = "atmosphere";
+  root.className = "atmosphere";
+  root.setAttribute("aria-hidden", "true");
+  let bits = "";
+  for (let i = 0; i < 10; i++) {
+    bits += `<i class="petal" style="left:${6 + i * 9}%;animation-delay:${i * 1.4}s;animation-duration:${14 + (i % 4)}s"></i>`;
+    bits += `<i class="raindrop" style="left:${4 + i * 9.5}%;animation-delay:${(i % 6) * 0.25}s"></i>`;
+  }
+  root.innerHTML = bits;
+  const canvasWrap = map.getCanvasContainer();
+  if (canvasWrap && canvasWrap.parentNode) canvasWrap.parentNode.insertBefore(root, canvasWrap.nextSibling);
+}
+function cardHead(m, open) {
+  const art = (HOUSE[m.glyph] || HOUSE.lane)();
+  const seal = m.secret ? `<span class="badge">ひみつ</span>` : `<span class="badge everyday-badge">日常</span>`;
+  const sign = open ? `<span class="noren-sign open">営業中 Open</span>` : `<span class="noren-sign shut">準備中 Closed</span>`;
+  return `<div class="place-head">${art}<div class="noren-row">${sign}${seal}</div></div>`;
 }
 
 function closedReason(mission) {
@@ -753,7 +816,7 @@ function openCard(place) {
   if (why) {
     document.querySelector("#scene .card").classList.add("notice");
     const opens = (hoursOf(mission) || [11])[0];
-    document.getElementById("card-body").innerHTML = `<h3>${esc(mission.titleJa)}</h3><p>${esc(why)}</p>
+    document.getElementById("card-body").innerHTML = `${cardHead(mission, false)}<h3>${esc(mission.titleJa)}</h3><p>${esc(why)}</p>
       <button class="btn primary" id="wait-open" style="width:100%">${opens}時まで待つ Wait until ${opens}</button>`;
     document.getElementById("wait-open").onclick = () => {
       const h = hoursOf(mission);
@@ -805,6 +868,7 @@ function renderCard() {
     const stamp = state.stamps.find((s) => s.missionId === m.id) || stampFrom(cardPlace, m.id);
     body.parentElement.classList.add("loc");
     body.innerHTML = `
+      ${cardHead(m, true)}
       <div class="stamp">${m.secret ? "ひみつ" : "済"}</div>
       <h3>${esc(stamp.nameJa)}</h3>
       <p class="sub">${esc(stamp.name)}</p>
@@ -873,6 +937,7 @@ function renderCard() {
   const cost = priceOf(m.id);
   const costLine = cost ? `<p class="sub">¥${cost} · 所持 ¥${state.yen}</p>` : "";
   body.innerHTML = `
+    ${cardHead(m, placeOpen(m))}
     <h3>${esc(m.titleJa)} ${badge}</h3>
     <p class="sub">${esc(cardPlace.nameJa)} · ${esc(cardPlace.name)}</p>
     ${costLine}
@@ -1183,9 +1248,15 @@ function bind() {
   document.getElementById("help-close").addEventListener("click", () => { document.getElementById("help").hidden = true; });
   document.getElementById("btn-sound").addEventListener("click", () => {
     state.muted = !state.muted;
-    if (state.muted) { clearTimeout(musicTimer); musicTimer = null; }
-    else startAmbient();
+    if (state.muted) { clearTimeout(musicTimer); musicTimer = null; stopRain(); }
+    else { startAmbient(); syncRain(); }
     renderHud(); save();
+  });
+  document.getElementById("btn-rain").addEventListener("click", () => {
+    state.rain = !state.rain;
+    applySky();
+    syncRain();
+    save();
   });
   document.getElementById("btn-book").addEventListener("click", () => renderBook());
   document.getElementById("book-tab-places").addEventListener("click", () => { state.bookTab = "places"; renderBook(); });
@@ -1312,15 +1383,49 @@ function startAmbient() {
   if (state.muted || musicTimer) return;
   const ctx = audio();
   if (!ctx) return;
-  const notes = [392, 440, 494, 523, 494, 440];
+  const notes = [392, 440, 494, 523, 494, 440, 392];
   let i = 0;
   const tick = () => {
     if (state.muted) { musicTimer = null; return; }
-    tone(ctx, notes[i % notes.length], ctx.currentTime, 0.45, 0.01);
+    tone(ctx, notes[i % notes.length], ctx.currentTime, 0.7, 0.008);
     i += 1;
-    musicTimer = setTimeout(tick, 780);
+    musicTimer = setTimeout(tick, 1280);
   };
   tick();
+}
+function stopRain() {
+  if (rainGain) { rainGain.gain.value = 0; rainGain.disconnect(); rainGain = null; }
+}
+function syncRain() {
+  const btn = document.getElementById("btn-rain");
+  if (btn) btn.classList.toggle("on", !!state.rain);
+  if (state.rain && !state.muted) startRain();
+  else stopRain();
+}
+function startRain() {
+  const ctx = audio();
+  if (!ctx || rainGain) return;
+  const length = ctx.sampleRate * 2;
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < length; i++) {
+    const white = Math.random() * 2 - 1;
+    last = (last + 0.015 * white) / 1.015;
+    data[i] = last;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  src.loop = true;
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 700;
+  rainGain = ctx.createGain();
+  rainGain.gain.value = 0.02;
+  src.connect(filter);
+  filter.connect(rainGain);
+  rainGain.connect(ctx.destination);
+  src.start();
 }
 
 function showCoach() {
@@ -1369,6 +1474,7 @@ function startGame(fromSave) {
   const desktop = window.matchMedia("(min-width: 900px)").matches;
   document.getElementById("quest").hidden = !desktop;
   if (fromSave) showToast("つづきから。 Stamps restored on this device.");
+  syncRain();
   requestAnimationFrame(frame);
 }
 
@@ -1451,7 +1557,8 @@ function bootSelect() {
       lastDate: data.lastDate || "",
       todayCount: data.todayCount || 0,
       goalDone: data.goalDone || "",
-      coach: data.coach ?? 99
+      coach: data.coach ?? 99,
+      rain: !!data.rain
     });
     backfillStamps();
     startGame(true);
