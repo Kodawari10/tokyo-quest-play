@@ -134,6 +134,14 @@
         <div id="album"></div>
       </div>
     </div>
+    <div id="festival" class="scene" hidden>
+      <div class="scene-art" id="festival-art"></div>
+      <div class="card">
+        <h3 id="festival-title">まつり</h3>
+        <p id="festival-body"></p>
+        <button id="festival-close" class="btn primary" type="button" style="width:100%">戻る Back</button>
+      </div>
+    </div>
     <div id="coach" class="coach" hidden>
       <p id="coach-text"></p>
       <button id="coach-next" class="btn primary" type="button">つぎへ Next</button>
@@ -169,6 +177,14 @@
         <p>You can cross blocks freely. The map underneath is real; the tiles are softened so the day feels like a picture book.</p>
         <p>The map is drawn from OpenStreetMap roads, parks, water, and buildings, in a pastel cartoon style. Tiles © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, © <a href="https://openmaptiles.org/">OpenMapTiles</a>, <a href="https://openfreemap.org">OpenFreeMap</a>. Places were read on 2026-11-17. Data © OpenStreetMap contributors, ODbL.</p>
         <p>Change who is walking. Stamps stay.</p>
+        <p><b>Season preview.</b> The game follows the real month. These buttons only change what you see, so you can try another season.</p>
+        <div class="sticker-row" id="season-switch">
+          <button class="btn tiny" type="button" data-season="">今</button>
+          <button class="btn tiny" type="button" data-season="sakura">桜</button>
+          <button class="btn tiny" type="button" data-season="natsu">夏</button>
+          <button class="btn tiny" type="button" data-season="momiji">紅葉</button>
+          <button class="btn tiny" type="button" data-season="fuyu">冬</button>
+        </div>
         <div id="mini-chars" class="chars-mini"></div>
         <button id="btn-reset" class="btn">はじめから Reset this day</button>
       </div>

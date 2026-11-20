@@ -134,7 +134,9 @@ const state = {
   wear: "",
   ownedWear: [],
   emote: "",
-  rumors: []
+  rumors: [],
+  tales: {},
+  seasonPick: ""
 };
 
 let map, player, poiMarkers = [], lanternMarkers = [], landmarkMarkers = [], audioCtx, locMap, musicTimer, timingFrame, rhythmTimer, performerFrame, rainGain;
@@ -220,7 +222,10 @@ function save() {
     photos: state.photos || [],
     wear: state.wear || "",
     ownedWear: state.ownedWear || [],
-    rumors: state.rumors || []
+    rumors: state.rumors || [],
+    tales: state.tales || {},
+    festival: state.festival || null,
+    seasonPick: state.seasonPick || ""
   };
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { /* ignore quota */ }
   movedSinceSave = false;
@@ -360,6 +365,7 @@ function wearSvg() {
   if (w === "scarf") return `<path d="M24 46 h32 q2 10 -6 14 h-8 q-2 -4 0 -8z" fill="#e07a4a"/>`;
   if (w === "umbrella") return `<path d="M62 6 q-18 10 -22 20 h44 q-4 -10 -22 -20z" fill="#f4b7c8" stroke="#e07a96"/><line x1="62" y1="26" x2="62" y2="78" stroke="#5c4652" stroke-width="1.4"/>`;
   if (w === "pack") return `<rect x="6" y="48" width="14" height="18" rx="4" fill="#7eb6d4"/>`;
+  if (w === "happi") return `<path d="M22 48 h36 l4 28 H18z" fill="#e15b5b" opacity=".9"/>`;
   return "";
 }
 function mapAvatar() {
@@ -545,12 +551,14 @@ function renderHud() {
   document.getElementById("btn-sound").textContent = state.muted ? "🔇" : "🔔";
   document.getElementById("btn-hurry").classList.toggle("on", state.hurry);
   const pocket = document.getElementById("pocket");
-  if (pocket) pocket.textContent = "¥" + state.yen + " · " + clockLabel() + " · " + (SEASON_LABEL[seasonId()] || "");
+  const fest = typeof festivalNow === "function" ? festivalNow() : null;
+  const festLabel = fest ? " · " + festivalSpec().nameJa + (fest.done ? " まつり" : " " + fest.progress + "/3") : "";
+  if (pocket) pocket.textContent = "¥" + state.yen + " · " + clockLabel() + " · " + (SEASON_LABEL[seasonId()] || "") + festLabel;
 }
 
 function renderQuest() {
   const list = document.getElementById("quest-list");
-  const items = state.tab === "secret" ? secrets() : everyday();
+  const items = (state.tab === "secret" ? secrets() : everyday()).slice().sort((a, b) => (a.season ? 0 : 1) - (b.season ? 0 : 1));
   document.getElementById("tab-daily").classList.toggle("on", state.tab === "daily");
   document.getElementById("tab-secret").classList.toggle("on", state.tab === "secret");
   list.innerHTML = items.map((m) => {
@@ -912,6 +920,32 @@ function startScoop() {
     };
   });
 }
+function playFireworks() {
+  const el = document.getElementById("map");
+  if (!el) return;
+  el.classList.add("fireworks-on");
+  setTimeout(() => el.classList.remove("fireworks-on"), 6000);
+}
+function showFestival() {
+  const spec = festivalSpec();
+  const art = document.getElementById("festival-art");
+  art.innerHTML = `<svg class="stage" viewBox="0 0 960 540">
+    <rect width="960" height="540" fill="#2a2438"/>
+    <rect class="sway" x="80" y="40" width="18" height="28" rx="8" fill="#e15b5b"/>
+    <rect class="sway" x="860" y="50" width="18" height="28" rx="8" fill="#ffb15a"/>
+    <rect x="120" y="250" width="140" height="80" rx="10" fill="#f4e2c4"/>
+    <rect x="700" y="240" width="150" height="90" rx="10" fill="#c45c4a"/>
+    <rect x="400" y="180" width="160" height="70" rx="8" fill="#f0c36a"/>
+    <circle cx="250" cy="360" r="28" fill="#fff6ea"/>
+    <circle cx="700" cy="370" r="22" fill="#fff"/>
+    <text x="80" y="80" fill="#ffe7ae" font-size="28">${spec.nameJa} まつり</text>
+  </svg>`;
+  document.getElementById("festival-title").textContent = spec.nameJa + "のまつり";
+  document.getElementById("festival-body").textContent = "Lanterns, a stall, a mikoshi, and a drum. The coat is yours.";
+  document.getElementById("festival").hidden = false;
+  state.wear = "happi";
+  paintCharacter();
+}
 function captureScene() {
   const svg = document.querySelector("#scene-art svg");
   if (!svg) { showToast("The scene is not open."); return; }
@@ -958,6 +992,7 @@ function showScene(mission) {
   scene.hidden = false;
 }
 function openCard(place) {
+  state.storyOffer = null;
   cardPlace = place;
   cardMode = "play";
   ritual = 0;
@@ -1027,6 +1062,7 @@ function renderCard() {
       <div class="stamp">${m.secret ? "ひみつ" : "済"}</div>
       <h3>${esc(stamp.nameJa)}</h3>
       ${state.speaker ? npcChip(state.speaker) : ""}
+      ${state.storyOffer ? `<div class="choices">${state.storyOffer.chapter.choices.map((c, i) => `<button class="choice" type="button" data-tale="${i}"><b>${esc(c.label)}</b></button>`).join("")}</div>` : ""}
       <p class="sub">${esc(stamp.name)}</p>
       <p class="loc-line">${esc(stamp.wardJa)} ${esc(stamp.ward)} · ${esc(stamp.stationJa)} station</p>
       <div id="loc-map" class="loc-map"></div>
@@ -1255,6 +1291,7 @@ function finish(detailLine) {
   state.completed[m.id] = { at: Date.now(), placeId: cardPlace.id, detail: detailLine || "" };
   rememberStamp(cardPlace, m.id);
   if (typeof noteDish === "function") noteDish(m.id, detailLine);
+  const festHit = typeof noteFestival === "function" ? noteFestival(cardPlace) : "";
   if (m.id === "station" && typeof noteEki === "function") noteEki(cardPlace);
   const localLine = typeof noteLocals === "function" ? noteLocals(m.id) : "";
   state.rewardLine = [detailLine || m.reward || "", localLine, seasonLine()].filter(Boolean).join(" ");
@@ -1267,6 +1304,9 @@ function finish(detailLine) {
   chime();
   coinPop("+" + (EARN[m.id] ?? 170));
   burst();
+  if (m.id === "fireworks") playFireworks();
+  if (festHit === "done") showFestival();
+  else if (festHit === "lantern") showToast("提灯 " + festivalNow().progress + "/3");
   renderCard();
   renderHud();
   renderQuest();
@@ -1323,7 +1363,9 @@ function bind() {
     const beat = e.target.closest("[data-beat]");
     const pull = e.target.closest("#gacha-pull");
     const fortune = e.target.closest("[data-fortune]");
+    const tale = e.target.closest("[data-tale]");
     const snap = e.target.closest("#snap-scene");
+    if (tale && state.storyOffer) { applyTale(Number(tale.dataset.tale)); renderCard(); return; }
     if (snap) { captureScene(); return; }
     if (choice) {
       const m = missionById(cardPlace.mission);
@@ -1423,6 +1465,18 @@ function bind() {
   });
   document.getElementById("btn-help").addEventListener("click", () => { renderMiniChars(); document.getElementById("help").hidden = false; });
   document.getElementById("help-close").addEventListener("click", () => { document.getElementById("help").hidden = true; });
+  const seasonSwitch = document.getElementById("season-switch");
+  if (seasonSwitch) seasonSwitch.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-season]");
+    if (!b) return;
+    state.seasonPick = b.dataset.season;
+    applySky();
+    buildMarkers();
+    renderQuest();
+    renderHud();
+    save();
+    showToast(state.seasonPick ? SEASON_LABEL[state.seasonPick] : "Back to this month.");
+  });
   document.getElementById("btn-sound").addEventListener("click", () => {
     state.muted = !state.muted;
     if (state.muted) { clearTimeout(musicTimer); musicTimer = null; stopRain(); }
@@ -1437,6 +1491,7 @@ function bind() {
   });
   document.getElementById("btn-book").addEventListener("click", () => renderBook());
   document.getElementById("btn-home").addEventListener("click", () => renderHome());
+  document.getElementById("festival-close").addEventListener("click", () => { document.getElementById("festival").hidden = true; });
   document.getElementById("home-close").addEventListener("click", () => { document.getElementById("home").hidden = true; });
   document.getElementById("room-shelf").addEventListener("click", (e) => {
     const cloth = e.target.closest("[data-wear]");
@@ -1839,6 +1894,8 @@ function bootSelect() {
     state.ownedWear = [];
     state.emote = "";
     state.rumors = [];
+    state.tales = {};
+    state.seasonPick = "";
     save();
     startGame(false);
   });
@@ -1877,7 +1934,10 @@ function bootSelect() {
       photos: data.photos || [],
       wear: data.wear || "",
       ownedWear: data.ownedWear || [],
-      rumors: data.rumors || []
+      rumors: data.rumors || [],
+      tales: data.tales || {},
+      festival: data.festival || null,
+      seasonPick: data.seasonPick || ""
     });
     backfillStamps();
     startGame(true);

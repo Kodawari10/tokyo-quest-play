@@ -506,6 +506,124 @@ const MISSIONS = [
     reward: "The cup is warm. The rumor was the address.",
     tipTitle: "Local tip",
     tip: "Canal Cafe sits on the old outer moat below Kagurazaka, easy to miss if you only walk the slope. A neighbor has to point. Once you know, it is just a quiet coffee by the water."
+  },
+  {
+    id: "hanami", secret: false, season: "sakura", glyph: "leaf", area: "Ueno", areaJa: "上野",
+    title: "Hanami", titleJa: "お花見",
+    blurb: "Ueno Park, when the cherries take the paths.",
+    verb: "Sit", verbJa: "すわる", kind: "confirm",
+    prompt: "A blue sheet, petals, and someone else's radio.",
+    promptJa: "青いシート", button: "Sit at the edge", buttonJa: "端に",
+    reward: "A petal lands in your tea. You drink it anyway."
+  },
+  {
+    id: "meguro", secret: false, season: "sakura", glyph: "stream", area: "Meguro", areaJa: "中目黒",
+    title: "River blossoms", titleJa: "目黒川",
+    blurb: "The famous cherry walk along the Meguro River.",
+    verb: "Walk", verbJa: "歩く", kind: "confirm",
+    prompt: "The water is pink for a week.",
+    promptJa: "水面がピンク", button: "Walk the bank", buttonJa: "土手",
+    reward: "You walk until the blossoms thin out."
+  },
+  {
+    id: "sakura-mochi", secret: false, season: "sakura", glyph: "candy", area: "Asakusa", areaJa: "仲見世",
+    title: "Sakura mochi", titleJa: "桜餅",
+    blurb: "A seasonal sweet on Nakamise while the blossoms last.",
+    verb: "Buy", verbJa: "買う", kind: "confirm",
+    prompt: "Leaf outside, bean inside.",
+    promptJa: "葉の外、あんの中", button: "One, please", buttonJa: "ひとつ",
+    reward: "Sticky, salty, gone."
+  },
+  {
+    id: "april-gate", secret: false, season: "sakura", glyph: "lane", area: "Hongo", areaJa: "本郷",
+    title: "April gate", titleJa: "四月の門",
+    blurb: "The red gate in Hongo, on a morning when bags are new.",
+    verb: "Pass", verbJa: "通る", kind: "confirm",
+    prompt: "New shoes. Old gate.",
+    promptJa: "新しい靴", button: "Walk through", buttonJa: "くぐる",
+    reward: "Someone's parent is crying, kindly."
+  },
+  {
+    id: "fireworks", secret: false, season: "natsu", glyph: "lantern", area: "Sumida", areaJa: "隅田川",
+    title: "River fireworks", titleJa: "花火",
+    blurb: "The Sumida river, the night the sky is rented.",
+    verb: "Look up", verbJa: "見上げる", kind: "confirm",
+    prompt: "The bank is a blanket of people.",
+    promptJa: "川のふち", button: "Wait for the boom", buttonJa: "待つ",
+    reward: "The first shell opens. Your ears ring in a friendly way."
+  },
+  {
+    id: "kakigori", secret: false, season: "natsu", glyph: "candy", area: "Yoyogi", areaJa: "代々木",
+    title: "Shaved ice", titleJa: "かき氷",
+    blurb: "A summer stall in Yoyogi Park.",
+    verb: "Order", verbJa: "頼む", kind: "choice",
+    prompt: "The ice is louder than the conversation.",
+    promptJa: "氷の音",
+    choices: [
+      { id: "strawberry", label: "いちご", sub: "Strawberry", line: "Pink, cold, and on your hands." },
+      { id: "matcha", label: "抹茶", sub: "Matcha", line: "Bitter, then sweet, then gone." }
+    ]
+  },
+  {
+    id: "bon", secret: true, season: "natsu", glyph: "lantern", area: "Nezu", areaJa: "根津",
+    title: "Bon odori", titleJa: "盆踊り",
+    blurb: "A neighborhood dance at Nezu.",
+    verb: "Join", verbJa: "入る", kind: "confirm",
+    prompt: "The same step, over and over, which is the point.",
+    promptJa: "同じステップ", button: "Dance the circle", buttonJa: "踊る",
+    reward: "You learn the step by the third song.",
+    tipTitle: "Local tip",
+    tip: "Bon odori is the neighborhood circle dance around Obon. You do not need to know it. Stand in the ring and copy the person ahead of you."
+  },
+  {
+    id: "kingyo", secret: false, season: "natsu", glyph: "stream", area: "Asakusa", areaJa: "浅草",
+    title: "Goldfish scoop", titleJa: "金魚すくい",
+    blurb: "A paper paddle and a tub, near the temple lanes.",
+    verb: "Scoop", verbJa: "すくう", kind: "confirm",
+    prompt: "The paper gives up before you do.",
+    promptJa: "紙が先に負ける", button: "One scoop", buttonJa: "一回",
+    reward: "One fish, briefly. The memory lasts longer."
+  },
+  {
+    id: "marunouchi", secret: false, season: "fuyu", glyph: "tower", area: "Marunouchi", areaJa: "丸の内",
+    title: "Winter lights", titleJa: "丸の内の灯り",
+    blurb: "The brick station and the avenue of lights.",
+    verb: "Walk", verbJa: "歩く", kind: "confirm",
+    prompt: "Coats, breath, and a tunnel of bulbs.",
+    promptJa: "電球のトンネル", button: "Walk through", buttonJa: "歩く",
+    reward: "Your cheeks hurt from the cold and from smiling."
+  },
+  {
+    id: "roppongi", secret: false, season: "fuyu", glyph: "leaf", area: "Roppongi", areaJa: "六本木",
+    title: "Hill lights", titleJa: "六本木のイルミ",
+    blurb: "The winter trees on the Roppongi hillside.",
+    verb: "Look", verbJa: "見る", kind: "confirm",
+    prompt: "The trees are wearing electricity.",
+    promptJa: "木が電気を着る", button: "Stand under one", buttonJa: "下に",
+    reward: "It is bright enough to read by, and nobody is reading."
+  },
+  {
+    id: "hatsumode", secret: false, season: "fuyu", glyph: "torii", area: "Harajuku", areaJa: "明治神宮",
+    title: "First shrine visit", titleJa: "初詣",
+    blurb: "Meiji Jingu on the first days of the year.",
+    verb: "Bow", verbJa: "参る", kind: "confirm",
+    prompt: "The crowd is a river. The wish is small.",
+    promptJa: "人の川", button: "Make the wish", buttonJa: "願う",
+    reward: "You bow with everyone else. The year agrees to start."
+  },
+  {
+    id: "oden", secret: true, season: "fuyu", glyph: "bowl", area: "Shinjuku", areaJa: "新宿",
+    title: "Oden night", titleJa: "おでん",
+    blurb: "A winter pot near the station, steam and daikon.",
+    verb: "Warm up", verbJa: "あたる", kind: "choice",
+    prompt: "The broth has been going since afternoon.",
+    promptJa: "昼からの出汁",
+    choices: [
+      { id: "daikon", label: "大根", sub: "Daikon", line: "It tastes like the whole pot." },
+      { id: "egg", label: "たまご", sub: "Egg", line: "Soft, soy, perfect in gloves." }
+    ],
+    tipTitle: "Local tip",
+    tip: "Winter oden is the pot that sits by the door of a small shop or a stall near the station. Daikon is the test. If the daikon is good, stay."
   }
 ];
 
@@ -562,7 +680,19 @@ const EXTRA_PLACES = [
   { id: "gyoen", mission: "momiji", name: "Shinjuku Gyoen", nameJa: "新宿御苑", areaJa: "新宿", lat: 35.6851, lng: 139.70989, osm: "way/15772074", radius: 70 },
   { id: "oimo", mission: "yakiimo", name: "Sweet potato truck", nameJa: "焼き芋のトラック", areaJa: "鷲神社前", lat: 35.72217, lng: 139.79169, osm: "way/831174934", radius: 36 },
   { id: "otori", mission: "tori", name: "Otori Shrine", nameJa: "鷲神社", areaJa: "浅草", lat: 35.72253, lng: 139.79169, osm: "way/831174934", radius: 46 },
-  { id: "canal", mission: "canal", name: "Canal Cafe", nameJa: "カナルカフェ", areaJa: "神楽坂", lat: 35.70029, lng: 139.74281, osm: "node/691449457", radius: 36 }
+  { id: "canal", mission: "canal", name: "Canal Cafe", nameJa: "カナルカフェ", areaJa: "神楽坂", lat: 35.70029, lng: 139.74281, osm: "node/691449457", radius: 36 },
+  { id: "hanami", mission: "hanami", name: "Ueno Park", nameJa: "上野公園", areaJa: "上野", lat: 35.7142, lng: 139.7732, osm: "Ueno Park", radius: 80 },
+  { id: "meguro-river", mission: "meguro", name: "Meguro River", nameJa: "目黒川", areaJa: "目黒", lat: 35.63453, lng: 139.71019, osm: "way/49683811", radius: 70 },
+  { id: "sakura-mochi", mission: "sakura-mochi", name: "Nakamise seasonal sweet", nameJa: "仲見世の桜餅", areaJa: "浅草", lat: 35.71239, lng: 139.7965, osm: "way/859751371", radius: 40 },
+  { id: "april-gate", mission: "april-gate", name: "Hongo gate", nameJa: "本郷の門", areaJa: "本郷", lat: 35.7138, lng: 139.762, osm: "Hongo", radius: 40 },
+  { id: "sumida-fire", mission: "fireworks", name: "Sumida River", nameJa: "隅田川", areaJa: "隅田", lat: 35.71713, lng: 139.80182, osm: "way/1238042192", radius: 80 },
+  { id: "kakigori", mission: "kakigori", name: "Yoyogi shaved ice", nameJa: "代々木のかき氷", areaJa: "代々木", lat: 35.6668, lng: 139.7004, osm: "way/1029462259", radius: 50 },
+  { id: "bon", mission: "bon", name: "Nezu Bon dance", nameJa: "根津の盆踊り", areaJa: "根津", lat: 35.72, lng: 139.76076, osm: "way/464629204", radius: 46 },
+  { id: "kingyo", mission: "kingyo", name: "Goldfish stall", nameJa: "金魚すくい", areaJa: "浅草", lat: 35.7138, lng: 139.7945, osm: "way/30705368", radius: 36 },
+  { id: "marunouchi", mission: "marunouchi", name: "Tokyo Station lights", nameJa: "東京駅の灯り", areaJa: "丸の内", lat: 35.68146, lng: 139.76657, osm: "way/1359348116", radius: 55 },
+  { id: "roppongi", mission: "roppongi", name: "Roppongi Hills", nameJa: "六本木ヒルズ", areaJa: "六本木", lat: 35.66022, lng: 139.73005, osm: "way/568436245", radius: 55 },
+  { id: "hatsumode", mission: "hatsumode", name: "Meiji Jingu hatsumode", nameJa: "明治神宮の初詣", areaJa: "原宿", lat: 35.67505, lng: 139.69948, osm: "way/469908925", radius: 65 },
+  { id: "oden", mission: "oden", name: "Shinjuku oden", nameJa: "新宿のおでん", areaJa: "新宿", lat: 35.6902, lng: 139.6994, osm: "node/6283384525", radius: 40 }
 ];
 
 const PLACES = STATIONS.map((s) => ({

@@ -92,8 +92,106 @@ function clearClusters() {
   clusterKey = "";
 }
 
+const CROWD_LINES = {
+  salary: "Almost there. The light will change.",
+  student: "The randoseru is heavier on Mondays.",
+  granny: "The cart has mandarins today.",
+  tourist: "Is this the way to the station?",
+  couple: "Let's get something warm.",
+  child: "The lanterns are bigger than me.",
+  yukata: "The geta are loud on this street."
+};
+const CROWD_COLORS = ["#f28aaa", "#7eb6d4", "#e7c48a", "#b7ead4", "#e4d4ff", "#f0a050", "#fff"];
+let crowd = [];
+let crowdClock = 0;
+
+function personSvg(kind, color) {
+  const coat = state.seasonPick === "fuyu" || seasonId() === "fuyu";
+  const rain = !!state.rain;
+  const body = coat ? "#6a7a90" : color;
+  const extra = kind === "student" ? `<rect x="10" y="8" width="8" height="6" rx="1" fill="#e15b5b"/>` : kind === "granny" ? `<rect x="16" y="16" width="8" height="5" fill="#c4a35a"/>` : kind === "tourist" ? `<rect x="4" y="12" width="7" height="5" fill="#fff" stroke="#5c4652"/>` : kind === "yukata" ? `<path d="M6 14 h16 l-2 12 H8z" fill="#f4b7c8"/>` : "";
+  const umbrella = rain ? `<path d="M4 6 q10 4 20 0 q-4 3 -10 3 q-6 0 -10 -3z" fill="#7eb6d4"/>` : "";
+  return `<svg viewBox="0 0 28 36" aria-hidden="true">${umbrella}<circle cx="14" cy="8" r="4" fill="#ffe3cf"/>${extra}<rect x="8" y="13" width="12" height="12" rx="4" fill="${body}"/><rect x="9" y="24" width="3" height="8" rx="1" fill="#5c4652"/><rect x="16" y="24" width="3" height="8" rx="1" fill="#5c4652"/></svg>`;
+}
+
+function crowdCap() {
+  const h = here();
+  let n = 8;
+  if (dist(h, { lat: 35.6595, lng: 139.7016 }) < 900 || dist(h, { lat: 35.6906, lng: 139.7005 }) < 900) n = 14;
+  if (dist(h, { lat: 35.7276, lng: 139.767 }) < 600) n = 5;
+  if (state.hour >= 22 || state.hour < 6) n = Math.max(3, Math.floor(n / 3));
+  else if (state.hour >= 19) n = Math.max(4, Math.floor(n / 2));
+  if (state.hour >= 17 && state.hour < 22 && dist(h, { lat: 35.694, lng: 139.705 }) < 450) n = Math.min(14, n + 3);
+  return n;
+}
+
+function crowdKind(i) {
+  const season = seasonId();
+  const pool = ["salary", "student", "granny", "tourist", "couple", "child"];
+  if (season === "natsu") pool.push("yukata", "yukata");
+  if (state.hour >= 17 && state.hour < 22) pool.push("couple", "salary");
+  if (state.hour < 9) pool.push("salary", "student");
+  return pool[i % pool.length];
+}
+
+function spawnPerson(p, i) {
+  const h = here();
+  const at = townOffset(h.lat, h.lng, (i % 5) * 14 - 28, ((i * 3) % 5) * 12 - 24);
+  p.lat = at.lat;
+  p.lng = at.lng;
+  const angle = (i * 1.3) % (Math.PI * 2);
+  p.vx = Math.cos(angle) * 0.7;
+  p.vy = Math.sin(angle) * 0.7;
+  p.kind = crowdKind(i);
+  const color = CROWD_COLORS[i % CROWD_COLORS.length];
+  p.el.innerHTML = personSvg(p.kind, color);
+  p.el.dataset.line = CROWD_LINES[p.kind] || "Just walking.";
+}
+
+function ensureCrowd() {
+  if (crowd.length || !map) return;
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "pedestrian";
+    el.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      showToast(el.dataset.line || "Just walking.");
+    });
+    const marker = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([state.lng, state.lat]).addTo(map);
+    const p = { el, marker, lat: state.lat, lng: state.lng, vx: 0, vy: 0, kind: "salary" };
+    spawnPerson(p, i);
+    crowd.push(p);
+  }
+}
+
+function stepCrowd() {
+  if (!map) return;
+  const now = performance.now();
+  const dt = crowdClock ? Math.min(0.05, (now - crowdClock) / 1000) : 0;
+  crowdClock = now;
+  const zoomOk = map.getZoom() >= 15.8 && !document.hidden;
+  if (!zoomOk) {
+    crowd.forEach((p) => { p.el.style.display = "none"; });
+    return;
+  }
+  ensureCrowd();
+  const cap = crowdCap();
+  const h = here();
+  crowd.forEach((p, i) => {
+    if (i >= cap) { p.el.style.display = "none"; return; }
+    p.el.style.display = "";
+    const next = townOffset(p.lat, p.lng, p.vx * dt * 8, p.vy * dt * 8);
+    p.lat = next.lat;
+    p.lng = next.lng;
+    if (dist(h, p) > 48) spawnPerson(p, i);
+    p.marker.setLngLat([p.lng, p.lat]);
+  });
+}
+
 function syncTown() {
   if (!map) return;
+  stepCrowd();
   syncCritters();
   syncTrain();
   const z = map.getZoom();

@@ -148,7 +148,7 @@ button { cursor: pointer; }
 #map.season-fuyu .petal { background: #fff; opacity: .85; }
 #map.season-natsu .petal { background: #ffe08a; }
 .firework { display: none; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #ffe7ae; box-shadow: 0 0 10px 4px rgba(255, 180, 90, .7); animation: pin-bob 2.8s ease-in-out infinite; }
-#map.season-natsu.night .firework { display: block; }
+#map.season-natsu.night .firework, #map.fireworks-on .firework { display: block; }
 .stage .scene-petal { animation: petal-fall 14s linear infinite; }
 .stage .far-hill { animation: hill-drift 26s ease-in-out infinite alternate; }
 .stage .mid-hill { animation: hill-drift 16s ease-in-out infinite alternate-reverse; }
@@ -157,6 +157,8 @@ button { cursor: pointer; }
 .critter.cat { animation: pin-bob 3.2s ease-in-out infinite; }
 .critter svg { width: 28px; height: 20px; display: block; }
 .mini-train { font-size: 16px; pointer-events: none; filter: drop-shadow(0 2px 0 rgba(120,70,90,.15)); }
+.pedestrian { background: none; border: 0; padding: 0; cursor: pointer; width: 22px; height: 28px; }
+.pedestrian svg { width: 22px; height: 28px; display: block; animation: step-l 0.45s ease-in-out infinite; }
 .coin-pop {
   position: absolute; left: 50%; top: 28%; z-index: 4;
   transform: translateX(-50%);

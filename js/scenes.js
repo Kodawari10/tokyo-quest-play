@@ -23,6 +23,7 @@ function heroWear() {
   if (w === "scarf") return `<path d="M36 118 h88 q8 22 -18 30 h-24 q-6 -8 0 -16z" fill="#e07a4a"/>`;
   if (w === "umbrella") return `<path d="M150 10 q-46 22 -54 46 h108 q-8 -24 -54 -46z" fill="#f4b7c8" stroke="#e07a96"/><line x1="150" y1="56" x2="150" y2="150" stroke="#5c4652" stroke-width="3"/>`;
   if (w === "pack") return `<rect x="6" y="96" width="30" height="40" rx="8" fill="#7eb6d4"/>`;
+  if (w === "happi") return `<path d="M30 100 h100 l8 50 H22z" fill="#e15b5b" opacity=".85"/>`;
   return "";
 }
 function hero(x, foot, scale) {
