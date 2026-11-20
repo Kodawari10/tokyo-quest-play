@@ -9,7 +9,7 @@ function townOffset(lat, lng, eastM, northM) {
 
 const CLUSTER_HOUSE = {
   machiya: "lane",
-  nagaya: "lane",
+  nagaya: "nagaya",
   kura: "kura",
   mansion: "mansion",
   pole: "pole",
@@ -21,7 +21,7 @@ const CLUSTER_HOUSE = {
   shrine: "torii",
   izakaya: "lantern",
   temple: "pagoda",
-  fence: "koi"
+  fence: "fence"
 };
 
 const QUARTERS = [
@@ -37,6 +37,54 @@ const QUARTERS = [
 
 let clusterMarkers = [];
 let clusterKey = "";
+let critterMarkers = [];
+let critterAt = null;
+let trainMarker = null;
+let trainT = 0;
+
+function critterSvg(kind) {
+  if (kind === "cat") return `<svg viewBox="0 0 32 24"><ellipse cx="16" cy="16" rx="10" ry="6" fill="#f0a050"/><path d="M8 10 l3 4 2-3z M22 10 l-2 4 -2-3z" fill="#f0a050"/></svg>`;
+  if (kind === "bird") return `<svg viewBox="0 0 32 20"><ellipse cx="14" cy="12" rx="6" ry="4" fill="#5c4652"/><path d="M18 10 l8 -4 -6 4z" fill="#5c4652"/></svg>`;
+  if (kind === "bike") return `<svg viewBox="0 0 36 24"><circle cx="8" cy="16" r="5" fill="none" stroke="#5c4652"/><circle cx="26" cy="16" r="5" fill="none" stroke="#5c4652"/><path d="M8 16 L16 8 L26 16" fill="none" stroke="#5c4652"/></svg>`;
+  return `<svg viewBox="0 0 36 24"><rect x="6" y="8" width="22" height="10" rx="4" fill="#f4e2c4" stroke="#e0c4a0"/><circle cx="12" cy="18" r="3" fill="#5c4652"/><circle cx="24" cy="18" r="3" fill="#5c4652"/></svg>`;
+}
+
+function syncCritters() {
+  if (!map || map.getZoom() < 16) {
+    critterMarkers.forEach((m) => m.remove());
+    critterMarkers = [];
+    critterAt = null;
+    return;
+  }
+  const h = here();
+  if (critterAt && dist(h, critterAt) < 70 && critterMarkers.length) return;
+  critterMarkers.forEach((m) => m.remove());
+  critterMarkers = [];
+  critterAt = { lat: h.lat, lng: h.lng };
+  [["cat", 28, 18], ["bird", -36, 22], ["bike", 16, -30], ["scooter", -22, -16]].forEach(([kind, e, n]) => {
+    const at = townOffset(h.lat, h.lng, e, n);
+    const el = document.createElement("div");
+    el.className = "critter " + kind;
+    el.innerHTML = critterSvg(kind);
+    critterMarkers.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([at.lng, at.lat]).addTo(map));
+  });
+}
+
+function syncTrain() {
+  if (!map) return;
+  if (!trainMarker) {
+    const el = document.createElement("div");
+    el.className = "mini-train";
+    el.textContent = "🚃";
+    trainMarker = new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([139.702, 35.659]).addTo(map);
+  }
+  trainT = (trainT + 0.00035) % 1;
+  const lat = 35.6565 + trainT * 0.01;
+  const lng = 139.7012 + Math.sin(trainT * Math.PI) * 0.002;
+  trainMarker.setLngLat([lng, lat]);
+  const show = map.getZoom() <= 16.2;
+  trainMarker.getElement().style.display = show ? "" : "none";
+}
 
 function clearClusters() {
   clusterMarkers.forEach((mk) => mk.remove());
@@ -46,6 +94,8 @@ function clearClusters() {
 
 function syncTown() {
   if (!map) return;
+  syncCritters();
+  syncTrain();
   const z = map.getZoom();
   if (z < 15.8) {
     if (clusterKey) clearClusters();

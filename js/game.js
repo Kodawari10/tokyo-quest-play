@@ -130,7 +130,11 @@ const state = {
   eki: [],
   room: [],
   photos: [],
-  draft: []
+  draft: [],
+  wear: "",
+  ownedWear: [],
+  emote: "",
+  rumors: []
 };
 
 let map, player, poiMarkers = [], lanternMarkers = [], landmarkMarkers = [], audioCtx, locMap, musicTimer, timingFrame, rhythmTimer, performerFrame, rainGain;
@@ -161,7 +165,14 @@ function formatDist(m) {
   return (m / 1000).toFixed(1) + " km";
 }
 function done(id) { return !!state.completed[id]; }
-function playableMissions() { return MISSIONS.filter((m) => !m.east || state.east); }
+function playableMissions() {
+  return MISSIONS.filter((m) => {
+    if (m.east && !state.east) return false;
+    if (m.season && m.season !== seasonId()) return false;
+    if (m.rumor && !(state.rumors || []).includes(m.rumor)) return false;
+    return true;
+  });
+}
 function everyday() { return playableMissions().filter((m) => !m.secret); }
 function secrets() { return playableMissions().filter((m) => m.secret); }
 function countDone(list) { return list.filter((m) => done(m.id)).length; }
@@ -206,7 +217,10 @@ function save() {
     foods: state.foods || [],
     eki: state.eki || [],
     room: state.room || [],
-    photos: state.photos || []
+    photos: state.photos || [],
+    wear: state.wear || "",
+    ownedWear: state.ownedWear || [],
+    rumors: state.rumors || []
   };
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { /* ignore quota */ }
   movedSinceSave = false;
@@ -340,8 +354,31 @@ function initMap() {
   });
 }
 
+function wearSvg() {
+  const w = state.wear || "";
+  if (w === "hat") return `<ellipse cx="40" cy="6" rx="16" ry="5" fill="#f28aaa"/><rect x="28" y="4" width="24" height="5" rx="2" fill="#e07a96"/>`;
+  if (w === "scarf") return `<path d="M24 46 h32 q2 10 -6 14 h-8 q-2 -4 0 -8z" fill="#e07a4a"/>`;
+  if (w === "umbrella") return `<path d="M62 6 q-18 10 -22 20 h44 q-4 -10 -22 -20z" fill="#f4b7c8" stroke="#e07a96"/><line x1="62" y1="26" x2="62" y2="78" stroke="#5c4652" stroke-width="1.4"/>`;
+  if (w === "pack") return `<rect x="6" y="48" width="14" height="18" rx="4" fill="#7eb6d4"/>`;
+  return "";
+}
+function mapAvatar() {
+  const raw = characterSvg(state.characterId) || "";
+  const inner = raw.replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
+  const em = state.emote || "";
+  return `<svg class="avatar" viewBox="0 0 80 104" aria-hidden="true">
+    <ellipse class="dust" cx="26" cy="98" rx="7" ry="2.2" fill="#e7d3c4"/>
+    <ellipse class="dust d2" cx="54" cy="98" rx="6" ry="2" fill="#e7d3c4"/>
+    <rect class="leg l" x="30" y="74" width="7" height="18" rx="3" fill="#6a5a62"/>
+    <rect class="leg r" x="44" y="74" width="7" height="18" rx="3" fill="#6a5a62"/>
+    <rect x="24" y="50" width="32" height="28" rx="14" fill="#fff7f1" stroke="#f3c6d4" stroke-width="1.2"/>
+    <g transform="translate(16,0) scale(0.3)">${inner}</g>
+    ${wearSvg()}
+    <text class="emote" x="60" y="18" font-size="14">${em}</text>
+  </svg>`;
+}
 function spriteHtml() {
-  return `<div class="sprite" id="sprite" style="transform:scaleX(${state.facing})"><div class="bob">${characterSvg(state.characterId)}</div></div>`;
+  return `<div class="sprite" id="sprite" style="transform:scaleX(${state.facing})"><div class="bob">${mapAvatar()}</div></div>`;
 }
 function paintCharacter() {
   if (!player) return;
@@ -351,7 +388,7 @@ function paintCharacter() {
 
 function visiblePlaces() {
   const out = [];
-  for (const m of MISSIONS) {
+  for (const m of playableMissions()) {
     const places = placesFor(m.id).filter(unlockedPlace);
     if (!places.length) continue;
     if (!done(m.id) || m.repeat || m.id === "station") out.push(...places);
@@ -429,7 +466,9 @@ function step(dt) {
   const sp = document.getElementById("sprite");
   if (sp) {
     sp.classList.toggle("walking", moving);
+    sp.classList.toggle("idle", !moving);
     sp.style.transform = `scaleX(${state.facing})`;
+    if (moving) state.emote = "";
   }
   updateBubble();
   updateCompass();
@@ -451,6 +490,7 @@ function updateBubble() {
   if (!p) { el.hidden = true; el.dataset.place = ""; return; }
   const m = missionById(p.mission);
   el.hidden = false;
+  if (el.dataset.place !== p.id) { state.emote = "♥"; paintCharacter(); }
   el.dataset.place = p.id;
   document.getElementById("bubble-ja").textContent = p.nameJa;
   document.getElementById("bubble-en").textContent = p.name + (m.secret ? " · local secret" : "");
@@ -872,6 +912,34 @@ function startScoop() {
     };
   });
 }
+function captureScene() {
+  const svg = document.querySelector("#scene-art svg");
+  if (!svg) { showToast("The scene is not open."); return; }
+  const xml = new XMLSerializer().serializeToString(svg);
+  const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 480;
+    canvas.height = 270;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, 480, 270);
+    ctx.font = "16px sans-serif";
+    ctx.fillStyle = "#5c4652";
+    ctx.fillText(state.wear ? "着用 " + state.wear : "東京", 16, 28);
+    let data = "";
+    try { data = canvas.toDataURL("image/png"); } catch (err) { data = ""; }
+    URL.revokeObjectURL(url);
+    if (!state.photos) state.photos = [];
+    state.photos.unshift({ stickers: [{ id: "heart" }], shot: data, at: Date.now() });
+    state.photos = state.photos.slice(0, 4);
+    save();
+    showToast(data ? "場面をアルバムに残した。" : "The picture could not be kept.");
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); showToast("The picture could not be kept."); };
+  img.src = url;
+}
 function coinPop(text) {
   const host = document.getElementById("scene");
   if (!host) return;
@@ -958,12 +1026,14 @@ function renderCard() {
       ${cardHead(m, true)}
       <div class="stamp">${m.secret ? "ひみつ" : "済"}</div>
       <h3>${esc(stamp.nameJa)}</h3>
+      ${state.speaker ? npcChip(state.speaker) : ""}
       <p class="sub">${esc(stamp.name)}</p>
       <p class="loc-line">${esc(stamp.wardJa)} ${esc(stamp.ward)} · ${esc(stamp.stationJa)} station</p>
       <div id="loc-map" class="loc-map"></div>
       <p class="osm-note">${esc(stamp.lat.toFixed(5))}, ${esc(stamp.lng.toFixed(5))} · OpenStreetMap ${esc(stamp.osm)} · +¥${EARN[m.id] ?? 170}</p>
       <button class="btn primary" id="card-continue" style="width:100%;margin-top:8px">地図で見る On the map</button>
       <p>${esc(state.rewardLine || m.reward || "")}</p>
+      <button class="btn" id="snap-scene" type="button" style="width:100%;margin-top:8px">場面を残す Save this scene</button>
       ${tip}
       ${extra}`;
     requestAnimationFrame(() => mountLocMap(cardPlace));
@@ -1253,6 +1323,8 @@ function bind() {
     const beat = e.target.closest("[data-beat]");
     const pull = e.target.closest("#gacha-pull");
     const fortune = e.target.closest("[data-fortune]");
+    const snap = e.target.closest("#snap-scene");
+    if (snap) { captureScene(); return; }
     if (choice) {
       const m = missionById(cardPlace.mission);
       const c = m.choices.find((x) => x.id === choice.dataset.choice);
@@ -1367,6 +1439,23 @@ function bind() {
   document.getElementById("btn-home").addEventListener("click", () => renderHome());
   document.getElementById("home-close").addEventListener("click", () => { document.getElementById("home").hidden = true; });
   document.getElementById("room-shelf").addEventListener("click", (e) => {
+    const cloth = e.target.closest("[data-wear]");
+    if (cloth) {
+      const item = WARDROBE.find((w) => w.id === cloth.dataset.wear);
+      if (!item) return;
+      if (!state.ownedWear) state.ownedWear = [];
+      if (!state.ownedWear.includes(item.id)) {
+        if (state.yen < item.price) { showToast("¥" + item.price + " is needed."); return; }
+        state.yen -= item.price;
+        state.ownedWear.push(item.id);
+      }
+      state.wear = state.wear === item.id ? "" : item.id;
+      paintCharacter();
+      renderHud();
+      save();
+      renderHome();
+      return;
+    }
     const b = e.target.closest("[data-decor]");
     if (!b) return;
     if (!state.room) state.room = [];
@@ -1382,6 +1471,49 @@ function bind() {
     if (!state.draft) state.draft = [];
     if (state.draft.length < 6) state.draft.push({ id: b.dataset.sticker });
     renderHome();
+  });
+  let foldStep = 0;
+  const folds = ["yama", "tani", "tsuru"];
+  document.getElementById("origami-box").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-fold]");
+    if (!b) return;
+    if (b.dataset.fold === folds[foldStep]) {
+      foldStep += 1;
+      document.getElementById("fold-count").textContent = foldStep + " / 3";
+      if (foldStep >= 3) {
+        foldStep = 0;
+        state.yen += 40;
+        giveToy({ id: "crane", name: "Paper crane", nameJa: "折り鶴" });
+        chime();
+        renderHud();
+        save();
+        showToast("折り鶴ができた。 +¥40");
+      }
+    } else {
+      foldStep = 0;
+      document.getElementById("fold-count").textContent = "The paper slipped. Start at 山.";
+    }
+  });
+  let ufoOn = false;
+  let ufoHits = 0;
+  setInterval(() => {
+    const b = document.getElementById("ufo-go");
+    if (!b || document.getElementById("home").hidden) return;
+    ufoOn = !ufoOn;
+    b.textContent = ufoOn ? "つかめ" : "まち";
+  }, 650);
+  document.getElementById("ufo-go").addEventListener("click", () => {
+    if (!ufoOn) { ufoHits = 0; showToast("The claw missed."); return; }
+    ufoHits += 1;
+    if (ufoHits >= 2) {
+      ufoHits = 0;
+      state.yen += 50;
+      giveToy({ id: "ufo-prize", name: "Capsule prize", nameJa: "UFOの景品" });
+      chime();
+      renderHud();
+      save();
+      showToast("景品が落ちた。 +¥50");
+    }
   });
   document.getElementById("photo-save").addEventListener("click", () => {
     if (!state.draft || !state.draft.length) { showToast("Add a sticker first."); return; }
@@ -1624,7 +1756,7 @@ function renderBook() {
     box.innerHTML = `<div class="badge-row">${badges}</div><p class="sub">Omamori. Tap one you own to carry it.</p><div class="toy-grid">${charms}</div><p class="sub">Gachapon</p><div class="toy-grid">${caps}</div><div class="toy-grid">${found}</div>`;
   } else {
     blurb.textContent = state.stamps.length + " places";
-    box.innerHTML = state.stamps.map((s) => `<button class="train-row" data-stamp="${esc(s.missionId)}">
+    box.innerHTML = passportHtml() + state.stamps.map((s) => `<button class="train-row" data-stamp="${esc(s.missionId)}">
       <span><b>${esc(s.nameJa)}</b><br><small style="color:var(--ink-soft)">${esc(s.wardJa)} · ${esc(s.stationJa)}</small></span>
       <span class="dist">地図</span></button>`).join("") || "<p>No stamps yet. Finish a quest.</p>";
   }
@@ -1703,6 +1835,10 @@ function bootSelect() {
     state.room = [];
     state.photos = [];
     state.draft = [];
+    state.wear = "";
+    state.ownedWear = [];
+    state.emote = "";
+    state.rumors = [];
     save();
     startGame(false);
   });
@@ -1738,7 +1874,10 @@ function bootSelect() {
       foods: data.foods || [],
       eki: data.eki || [],
       room: data.room || [],
-      photos: data.photos || []
+      photos: data.photos || [],
+      wear: data.wear || "",
+      ownedWear: data.ownedWear || [],
+      rumors: data.rumors || []
     });
     backfillStamps();
     startGame(true);

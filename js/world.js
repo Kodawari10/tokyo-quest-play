@@ -456,6 +456,56 @@ const MISSIONS = [
     reward: "You eat standing-close, under the Yamanote line.",
     tipTitle: "Local tip",
     tip: "Yurakucho Sanchoku Yokocho is a small dining lane by the station, in the neighborhood of the old guard-shita counters under the tracks. It is an evening place: go after the offices empty, not on a morning errand."
+  },
+  {
+    id: "momiji", secret: false, season: "momiji", glyph: "leaf", area: "Shinjuku", areaJa: "新宿御苑",
+    title: "Maple hour", titleJa: "紅葉",
+    blurb: "Shinjuku Gyoen keeps its maples late into November.",
+    verb: "Look", verbJa: "見る",
+    kind: "confirm",
+    prompt: "The leaves are the color of tea.",
+    promptJa: "お茶のような色",
+    button: "Stand awhile", buttonJa: "しばらく",
+    reward: "A maple leaf sticks to your sleeve. You leave it there."
+  },
+  {
+    id: "yakiimo", secret: false, season: "momiji", glyph: "candy", area: "Asakusa", areaJa: "浅草",
+    title: "Sweet potato truck", titleJa: "焼き芋",
+    blurb: "A seasonal truck by Otori Shrine, while the fair is on.",
+    verb: "Buy", verbJa: "買う",
+    kind: "choice",
+    prompt: "Stone-roasted, wrapped in paper.",
+    promptJa: "石で焼いた",
+    choices: [
+      { id: "plain", label: "そのまま", sub: "Plain", line: "Hot, sweet, and gone before the next stall." },
+      { id: "butter", label: "バター", sub: "Butter", line: "It melts into the potato. The paper bag shines." }
+    ]
+  },
+  {
+    id: "tori", secret: true, season: "momiji", glyph: "torii", area: "Asakusa", areaJa: "鷲神社",
+    title: "Tori-no-ichi", titleJa: "酉の市",
+    blurb: "The November kumade fair at Otori Shrine.",
+    verb: "Browse", verbJa: "見る",
+    kind: "confirm",
+    prompt: "Bamboo rakes, lucky charms, and a crowd that knows the date.",
+    promptJa: "熊手の市",
+    button: "Take a small rake", buttonJa: "熊手",
+    reward: "A little kumade for the room. The fair only lasts a few nights.",
+    tipTitle: "Local tip",
+    tip: "Tori-no-ichi is the November fair at Otori shrines. The Asakusa one fills the lanes with kumade, bamboo rakes sold for luck in business. It is not every week. Come while the drums are out."
+  },
+  {
+    id: "canal", secret: true, rumor: "cafe", glyph: "cup", area: "Kagurazaka", areaJa: "神楽坂",
+    title: "Rumored waterside cafe", titleJa: "カナルカフェ",
+    blurb: "Sato-san's whisper: a cafe on the old canal.",
+    verb: "Sit", verbJa: "座る",
+    kind: "confirm",
+    prompt: "The water is right there. Nobody on the main slope mentioned it.",
+    promptJa: "水面のすぐそば",
+    button: "Order coffee", buttonJa: "コーヒー",
+    reward: "The cup is warm. The rumor was the address.",
+    tipTitle: "Local tip",
+    tip: "Canal Cafe sits on the old outer moat below Kagurazaka, easy to miss if you only walk the slope. A neighbor has to point. Once you know, it is just a quiet coffee by the water."
   }
 ];
 
@@ -508,7 +558,11 @@ const EXTRA_PLACES = [
   { id: "hoppy", mission: "hoppy", name: "Hoppy Street", nameJa: "ホッピー通り", areaJa: "浅草", lat: 35.71379, lng: 139.794127, osm: "way/30705368", radius: 42 },
   { id: "ameyoko", mission: "ameyoko", name: "Ameyoko Street", nameJa: "アメ横通り", areaJa: "上野", lat: 35.709699, lng: 139.774648, osm: "way/509241395", radius: 48 },
   { id: "kanda", mission: "kanda", name: "Kanda Myojin", nameJa: "神田明神", areaJa: "外神田", lat: 35.701966, lng: 139.767752, osm: "way/89431876", radius: 50 },
-  { id: "yoko", mission: "yoko", name: "Yurakucho Sanchoku Yokocho", nameJa: "有楽町産直横丁", areaJa: "有楽町", lat: 35.672133, lng: 139.760328, osm: "node/10681174306", radius: 36 }
+  { id: "yoko", mission: "yoko", name: "Yurakucho Sanchoku Yokocho", nameJa: "有楽町産直横丁", areaJa: "有楽町", lat: 35.672133, lng: 139.760328, osm: "node/10681174306", radius: 36 },
+  { id: "gyoen", mission: "momiji", name: "Shinjuku Gyoen", nameJa: "新宿御苑", areaJa: "新宿", lat: 35.6851, lng: 139.70989, osm: "way/15772074", radius: 70 },
+  { id: "oimo", mission: "yakiimo", name: "Sweet potato truck", nameJa: "焼き芋のトラック", areaJa: "鷲神社前", lat: 35.72217, lng: 139.79169, osm: "way/831174934", radius: 36 },
+  { id: "otori", mission: "tori", name: "Otori Shrine", nameJa: "鷲神社", areaJa: "浅草", lat: 35.72253, lng: 139.79169, osm: "way/831174934", radius: 46 },
+  { id: "canal", mission: "canal", name: "Canal Cafe", nameJa: "カナルカフェ", areaJa: "神楽坂", lat: 35.70029, lng: 139.74281, osm: "node/691449457", radius: 36 }
 ];
 
 const PLACES = STATIONS.map((s) => ({

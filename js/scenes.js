@@ -10,18 +10,27 @@ function stage(id, top, bottom, inner) {
     <rect width="960" height="540" fill="url(#sky-${id})"/>
     <ellipse cx="760" cy="36" rx="120" ry="46" fill="#ffe7ae" opacity=".35"/>
     <g class="far-hill"><ellipse cx="180" cy="500" rx="260" ry="70" fill="#fff" opacity=".28"/><ellipse cx="720" cy="510" rx="300" ry="80" fill="#fff6ea" opacity=".35"/></g>
+    <g class="mid-hill"><ellipse cx="300" cy="430" rx="180" ry="36" fill="#f7e7c8" opacity=".55"/><ellipse cx="680" cy="440" rx="160" ry="30" fill="#e7f0d8" opacity=".5"/></g>
     ${cloud(150, 64, 1.05)} ${cloud(520, 78, 0.9)}
     ${inner}
     ${petals}
   </svg>`;
 }
 
+function heroWear() {
+  const w = state.wear || "";
+  if (w === "hat") return `<ellipse cx="80" cy="34" rx="52" ry="14" fill="#f28aaa"/><rect x="40" y="30" width="80" height="12" rx="4" fill="#e07a96"/>`;
+  if (w === "scarf") return `<path d="M36 118 h88 q8 22 -18 30 h-24 q-6 -8 0 -16z" fill="#e07a4a"/>`;
+  if (w === "umbrella") return `<path d="M150 10 q-46 22 -54 46 h108 q-8 -24 -54 -46z" fill="#f4b7c8" stroke="#e07a96"/><line x1="150" y1="56" x2="150" y2="150" stroke="#5c4652" stroke-width="3"/>`;
+  if (w === "pack") return `<rect x="6" y="96" width="30" height="40" rx="8" fill="#7eb6d4"/>`;
+  return "";
+}
 function hero(x, foot, scale) {
   const s = (scale || 1) * 0.55;
   const raw = characterSvg(state.characterId) || "";
   const inner = raw.replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
   const y = foot - 148 * s;
-  return `<g transform="translate(${x},${y}) scale(${s})"><g class="hero-bob">${inner}</g></g>`;
+  return `<g transform="translate(${x},${y}) scale(${s})"><g class="hero-bob">${inner}${heroWear()}</g></g>`;
 }
 
 function cloud(x, y, s) {
@@ -529,6 +538,42 @@ const SCENE_BUILDERS = {
       ${lantern(480, 140, "#ffb15a", 0.2)}
       ${hero(430, 500, 0.95)}
       ${sign("産直横丁")}`);
+  },
+  momiji() {
+    return stage("momiji", "#ffe7c2", "#f0c4a0", `
+      <ellipse cx="200" cy="220" rx="70" ry="50" fill="#e07a3a"/>
+      <ellipse cx="300" cy="200" rx="50" ry="40" fill="#c45c4a"/>
+      <ellipse cx="700" cy="210" rx="80" ry="50" fill="#f0a050"/>
+      <rect x="240" y="250" width="16" height="80" fill="#8a5a4a"/>
+      <rect x="680" y="250" width="16" height="90" fill="#8a5a4a"/>
+      ${hero(430, 500, 0.95)}
+      ${sign("新宿御苑")}`);
+  },
+  yakiimo() {
+    return stage("yakiimo", "#fff1dc", "#f0c4a0", `
+      <rect x="180" y="220" width="280" height="120" rx="16" fill="#f4e2c4" stroke="#c4844a"/>
+      <rect x="200" y="180" width="240" height="50" rx="10" fill="#fff"/>
+      <ellipse class="steam" cx="320" cy="160" rx="16" ry="8" fill="#fff" opacity=".8"/>
+      ${hero(620, 500, 0.95)}
+      ${sign("焼き芋")}`);
+  },
+  tori() {
+    return stage("tori", "#fff6ea", "#f7c3d4", `
+      <rect x="300" y="80" width="200" height="18" fill="#e15b5b"/>
+      <rect x="330" y="98" width="14" height="80" fill="#e15b5b"/>
+      <rect x="456" y="98" width="14" height="80" fill="#e15b5b"/>
+      <path d="M180 300 h80 l10 -40 h-20 z" fill="#c4a35a"/>
+      <path d="M640 280 h90 l12 -50 h-24 z" fill="#e7c48a"/>
+      ${hero(430, 500, 0.95)}
+      ${sign("酉の市")}`);
+  },
+  canal() {
+    return stage("canal", "#d5ecff", "#fff6ea", `
+      <rect x="0" y="300" width="960" height="80" fill="#9fd4f2"/>
+      ${dressRoof(80, 80, 200, "#6a4038")}
+      <rect x="100" y="140" width="180" height="120" fill="#f7efe4"/>
+      ${hero(500, 500, 0.95)}
+      ${sign("カナルカフェ")}`);
   }
 };
 

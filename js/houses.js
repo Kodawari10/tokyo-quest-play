@@ -231,6 +231,23 @@ const HOUSE = {
       ${houseFace(32, 50)}
       <rect x="28" y="8" width="8" height="10" rx="2" fill="#f28aaa"/>`);
   },
+  nagaya() {
+    return houseSvg(`
+      ${kawara(2, 14, 60, "#8a5a4a")}
+      <rect x="4" y="26" width="56" height="32" fill="#f0d2b0" stroke="#c4926a"/>
+      <rect x="10" y="34" width="8" height="16" fill="#6a4038"/>
+      <rect x="28" y="34" width="8" height="16" fill="#6a4038"/>
+      <rect x="46" y="34" width="8" height="16" fill="#6a4038"/>
+      ${noren(8, 26, 12, "#f28aaa")}
+      ${houseFace(32, 30)}`);
+  },
+  fence() {
+    return houseSvg(`
+      <path d="M8 28 v28 M18 24 v32 M28 28 v28 M38 24 v32 M48 28 v28 M56 24 v32" stroke="#7d9a62" stroke-width="3" stroke-linecap="round"/>
+      <path d="M6 36 H58 M6 46 H58" stroke="#c4a35a" stroke-width="2"/>
+      <ellipse cx="32" cy="20" rx="8" ry="4" fill="#8ed4a8"/>
+      ${houseFace(32, 58)}`);
+  },
   kura() {
     return houseSvg(`
       ${kawara(6, 10, 52, "#3a3538")}
