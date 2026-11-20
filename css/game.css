@@ -140,7 +140,21 @@ button { cursor: pointer; }
 .raindrop { display: none; }
 #map.rainy .petal { display: none; }
 #map.rainy .raindrop { display: block; }
+#map.season-momiji .petal { background: #e07a3a; border-radius: 2px 10px; }
+#map.season-fuyu .petal { background: #fff; opacity: .85; }
+#map.season-natsu .petal { background: #ffe08a; }
+.firework { display: none; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #ffe7ae; box-shadow: 0 0 10px 4px rgba(255, 180, 90, .7); animation: pin-bob 2.8s ease-in-out infinite; }
+#map.season-natsu.night .firework { display: block; }
 .stage .scene-petal { animation: petal-fall 14s linear infinite; }
+.stage .far-hill { animation: hill-drift 26s ease-in-out infinite alternate; }
+@keyframes hill-drift { to { transform: translateX(-16px); } }
+.coin-pop {
+  position: absolute; left: 50%; top: 28%; z-index: 4;
+  transform: translateX(-50%);
+  background: #fff6d8; color: #8a5a32; font-weight: 700;
+  border-radius: 999px; padding: 4px 10px;
+  animation: pin-bob 0.9s ease-out 1;
+}
 @keyframes petal-fall {
   0% { transform: translateY(0) rotate(0deg); }
   100% { transform: translateY(110vh) rotate(40deg); }
@@ -210,6 +224,8 @@ button { cursor: pointer; }
 }
 .pin.active { animation-duration: 2.2s; }
 .pin.done { opacity: 0.72; }
+.cluster { width: 42px; height: 48px; pointer-events: none; opacity: 0.92; }
+.cluster svg { width: 42px; height: 46px; filter: drop-shadow(0 2px 0 rgba(120, 70, 90, .1)); }
 .landmark { width: 72px; height: 84px; pointer-events: none; animation: pin-bob 4.5s ease-in-out infinite; }
 .landmark svg { width: 72px; height: 80px; filter: drop-shadow(0 6px 0 rgba(120, 70, 90, .1)); }
 .landmark em {
@@ -236,6 +252,16 @@ button { cursor: pointer; }
 .noren-sign.open { background: #e5f6ea; color: #3d7a52; }
 .noren-sign.shut { background: #f3e2e6; color: #8a4d64; }
 .badge.everyday-badge { background: #ffe3ef; color: #c45c78; }
+.room { position: relative; height: 180px; border-radius: 18px; overflow: hidden; background: linear-gradient(#f7e7c8, #e7f0d8 70%, #d7c4a4); margin-bottom: 8px; }
+.room-window { position: absolute; right: 16px; top: 16px; width: 54px; height: 64px; background: #fff6d8; box-shadow: inset 0 0 0 6px #e7d3b0; }
+.room-window::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: #e7d3b0; }
+.room-shelf-art { position: absolute; left: 12px; right: 84px; bottom: 16px; display: flex; gap: 4px; flex-wrap: wrap; }
+.room-item { background: rgba(255,250,244,.9); border-radius: 10px; padding: 2px 6px; font-size: 11px; }
+.room-item.faint { opacity: .6; }
+.photo-frame { position: absolute; left: 16px; top: 14px; width: 120px; height: 78px; border: 6px solid #fff; border-radius: 8px; box-shadow: 0 4px 0 rgba(120,70,90,.08); background: rgba(255,255,255,.35); }
+.sticker { position: absolute; font-style: normal; font-size: 16px; }
+.sticker-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.album-shot { background: #fff; border-radius: 12px; padding: 6px 8px; margin-top: 6px; }
 .q-ico { width: 32px; height: 36px; display: block; }
 .q-ico svg { width: 32px; height: 36px; }
 

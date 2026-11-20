@@ -9,6 +9,7 @@ function stage(id, top, bottom, inner) {
     </linearGradient></defs>
     <rect width="960" height="540" fill="url(#sky-${id})"/>
     <ellipse cx="760" cy="36" rx="120" ry="46" fill="#ffe7ae" opacity=".35"/>
+    <g class="far-hill"><ellipse cx="180" cy="500" rx="260" ry="70" fill="#fff" opacity=".28"/><ellipse cx="720" cy="510" rx="300" ry="80" fill="#fff6ea" opacity=".35"/></g>
     ${cloud(150, 64, 1.05)} ${cloud(520, 78, 0.9)}
     ${inner}
     ${petals}

@@ -230,6 +230,70 @@ const HOUSE = {
       <circle cx="32" cy="38" r="5" fill="#b7ead4"/>
       ${houseFace(32, 50)}
       <rect x="28" y="8" width="8" height="10" rx="2" fill="#f28aaa"/>`);
+  },
+  kura() {
+    return houseSvg(`
+      ${kawara(6, 10, 52, "#3a3538")}
+      <rect x="10" y="22" width="44" height="36" rx="2" fill="#f7f4ee" stroke="#d9d0c4"/>
+      <rect x="26" y="36" width="12" height="22" rx="1" fill="#6a4038"/>
+      ${shoji(14, 30, 8, 10)}
+      ${houseFace(46, 40)}`);
+  },
+  mansion() {
+    return houseSvg(`
+      <rect x="10" y="8" width="44" height="54" rx="3" fill="#f4e6dc" stroke="#e0c4b0"/>
+      ${shoji(16, 16, 12, 10)}
+      ${shoji(36, 16, 12, 10)}
+      ${shoji(16, 32, 12, 10)}
+      ${shoji(36, 32, 12, 10)}
+      <path d="M14 28 h8 v6 h-3 l-2 5 h-3z" fill="#d5ecff"/>
+      <path d="M40 44 h8 v6 h-3 l-2 5 h-3z" fill="#ffd0e0"/>
+      ${houseFace(32, 54)}`);
+  },
+  pole() {
+    return houseSvg(`
+      <path d="M6 18 H58 M10 18 v6 M48 18 v8" stroke="#8a7a72" stroke-width="1.2" fill="none"/>
+      <rect x="30" y="16" width="3" height="48" fill="#b7a89a"/>
+      <rect class="chochin" x="8" y="22" width="7" height="10" rx="3" fill="#ffb15a"/>
+      <rect x="18" y="40" width="10" height="16" rx="2" fill="#fff" stroke="#e7b8c4"/>
+      ${houseFace(23, 48)}`);
+  },
+  koi() {
+    return houseSvg(`
+      <ellipse cx="32" cy="40" rx="22" ry="14" fill="#9fd4f2" stroke="#7eb8d4"/>
+      <ellipse cx="24" cy="40" rx="6" ry="3" fill="#f28a4a"/>
+      <ellipse cx="40" cy="44" rx="5" ry="2.4" fill="#fff"/>
+      <path d="M8 28 h10 M46 24 h12" stroke="#7d9a62" stroke-width="2"/>
+      <ellipse cx="14" cy="22" rx="6" ry="3" fill="#8ed4a8"/>
+      ${houseFace(32, 58)}`);
+  },
+  gate() {
+    return houseSvg(`
+      <rect x="4" y="18" width="56" height="16" rx="2" fill="#e15b5b"/>
+      <rect x="10" y="34" width="10" height="28" fill="#c45c4a"/>
+      <rect x="44" y="34" width="10" height="28" fill="#c45c4a"/>
+      <circle cx="18" cy="16" r="6" fill="#fff"/>
+      <circle cx="46" cy="16" r="6" fill="#fff"/>
+      ${houseFace(32, 26)}
+      <rect class="chochin" x="28" y="36" width="8" height="14" rx="3" fill="#ffb15a"/>`);
+  },
+  brick() {
+    return houseSvg(`
+      ${kawara(4, 8, 56, "#6a4038")}
+      <rect x="8" y="20" width="48" height="40" fill="#c46a5a" stroke="#a8483c"/>
+      <path d="M8 32 H56 M8 44 H56 M20 20 V60 M32 20 V60 M44 20 V60" stroke="#e7b09a" stroke-width="0.7"/>
+      <rect x="26" y="40" width="12" height="20" fill="#5c4652"/>
+      ${houseFace(18, 28)}`);
+  },
+  scramble() {
+    return houseSvg(`
+      ${kawara(2, 12, 26, "#f4d2dc")}
+      <rect x="4" y="24" width="22" height="28" rx="2" fill="#fff" stroke="#e7b8c4"/>
+      ${kawara(34, 8, 26, "#d5ecff")}
+      <rect x="36" y="20" width="22" height="32" rx="2" fill="#fff" stroke="#c5d4e4"/>
+      <rect x="28" y="46" width="8" height="10" rx="1" fill="#9ad7b0"/>
+      ${houseFace(16, 36)}
+      ${houseFace(48, 34)}`);
   }
 };
 
@@ -237,5 +301,11 @@ function landmarkSvg(kind) {
   if (kind === "torii") return HOUSE.torii();
   if (kind === "pagoda") return HOUSE.pagoda();
   if (kind === "tower") return HOUSE.tower();
+  if (kind === "gate") return HOUSE.gate();
+  if (kind === "brick") return HOUSE.brick();
+  if (kind === "scramble") return HOUSE.scramble();
+  if (kind === "park") return HOUSE.tree();
+  if (kind === "alley") return HOUSE.lantern();
+  if (kind === "village") return HOUSE.lane();
   return HOUSE.skytree();
 }

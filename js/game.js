@@ -124,11 +124,18 @@ const state = {
   goalDone: "",
   coach: 0,
   bookTab: "places",
-  rain: false
+  rain: false,
+  locals: {},
+  foods: [],
+  eki: [],
+  room: [],
+  photos: [],
+  draft: []
 };
 
 let map, player, poiMarkers = [], lanternMarkers = [], landmarkMarkers = [], audioCtx, locMap, musicTimer, timingFrame, rhythmTimer, performerFrame, rainGain;
 let rhythmStep = 0;
+let miniTimer = 0;
 let rhythmHits = 0;
 let lastTs = 0;
 let saveTimer = 0;
@@ -194,7 +201,12 @@ function save() {
     todayCount: state.todayCount,
     goalDone: state.goalDone,
     coach: state.coach,
-    rain: !!state.rain
+    rain: !!state.rain,
+    locals: state.locals || {},
+    foods: state.foods || [],
+    eki: state.eki || [],
+    room: state.room || [],
+    photos: state.photos || []
   };
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { /* ignore quota */ }
   movedSinceSave = false;
@@ -342,7 +354,7 @@ function visiblePlaces() {
   for (const m of MISSIONS) {
     const places = placesFor(m.id).filter(unlockedPlace);
     if (!places.length) continue;
-    if (!done(m.id) || m.repeat) out.push(...places);
+    if (!done(m.id) || m.repeat || m.id === "station") out.push(...places);
     else {
       const keep = state.completed[m.id] && state.completed[m.id].placeId;
       const one = places.find((p) => p.id === keep) || places[0];
@@ -425,7 +437,7 @@ function step(dt) {
 }
 
 function nearbyPlace() {
-  const candidates = PLACES.filter((p) => unlockedPlace(p) && dist(here(), p) <= p.radius && (p.repeat || !done(p.mission)));
+  const candidates = PLACES.filter((p) => unlockedPlace(p) && dist(here(), p) <= p.radius && (p.repeat || p.mission === "station" || !done(p.mission)));
   if (!candidates.length) return null;
   const preferred = candidates.filter((p) => p.mission === state.activeId);
   const pool = preferred.length ? preferred : candidates;
@@ -482,6 +494,7 @@ function updateArea() {
     : label + " · " + rankName();
   const el = document.getElementById("area-label");
   if (el.textContent !== text) el.textContent = text;
+  if (typeof syncTown === "function") syncTown();
 }
 
 function renderHud() {
@@ -492,7 +505,7 @@ function renderHud() {
   document.getElementById("btn-sound").textContent = state.muted ? "🔇" : "🔔";
   document.getElementById("btn-hurry").classList.toggle("on", state.hurry);
   const pocket = document.getElementById("pocket");
-  if (pocket) pocket.textContent = "¥" + state.yen + " · " + clockLabel();
+  if (pocket) pocket.textContent = "¥" + state.yen + " · " + clockLabel() + " · " + (SEASON_LABEL[seasonId()] || "");
 }
 
 function renderQuest() {
@@ -649,6 +662,11 @@ function applySky() {
   el.classList.toggle("evening", evening);
   el.classList.toggle("night", night);
   el.classList.toggle("rainy", !!state.rain);
+  const season = seasonId();
+  ["sakura", "natsu", "momiji", "fuyu"].forEach((s) => {
+    el.classList.toggle("season-" + s, s === season);
+    document.body.classList.toggle("season-" + s, s === season);
+  });
   if (map && map.getLayer("dusk-wash")) {
     map.setPaintProperty("dusk-wash", "fill-opacity", evening ? 0.2 : 0);
     map.setPaintProperty("night-wash", "fill-opacity", night ? 0.5 : 0);
@@ -670,7 +688,14 @@ function syncLanterns() {
 }
 const LANDMARKS = [
   { kind: "pagoda", name: "五重塔", lat: 35.7141, lng: 139.79604 },
+  { kind: "gate", name: "雷門", lat: 35.71107, lng: 139.79639 },
   { kind: "torii", name: "大鳥居", lat: 35.67399, lng: 139.7014 },
+  { kind: "torii", name: "根津神社", lat: 35.72, lng: 139.76076 },
+  { kind: "scramble", name: "スクランブル", lat: 35.65948, lng: 139.70057 },
+  { kind: "brick", name: "東京駅", lat: 35.68146, lng: 139.76657 },
+  { kind: "village", name: "谷中", lat: 35.72766, lng: 139.76697 },
+  { kind: "park", name: "上野公園", lat: 35.7142, lng: 139.7732 },
+  { kind: "alley", name: "ゴールデン街", lat: 35.69406, lng: 139.70469 },
   { kind: "tower", name: "東京タワー", lat: 35.65856, lng: 139.74544 },
   { kind: "skytree", name: "スカイツリー", lat: 35.71005, lng: 139.81071 }
 ];
@@ -694,6 +719,7 @@ function syncZoomChrome() {
   if (!el || !map) return;
   el.classList.toggle("named", map.getZoom() >= 15.4);
   syncLandmarks();
+  if (typeof syncTown === "function") syncTown();
 }
 function buildAtmosphere() {
   if (document.getElementById("atmosphere")) return;
@@ -705,6 +731,7 @@ function buildAtmosphere() {
   for (let i = 0; i < 10; i++) {
     bits += `<i class="petal" style="left:${6 + i * 9}%;animation-delay:${i * 1.4}s;animation-duration:${14 + (i % 4)}s"></i>`;
     bits += `<i class="raindrop" style="left:${4 + i * 9.5}%;animation-delay:${(i % 6) * 0.25}s"></i>`;
+    if (i < 4) bits += `<i class="firework" style="left:${18 + i * 18}%;top:${12 + (i % 2) * 10}%"></i>`;
   }
   root.innerHTML = bits;
   const canvasWrap = map.getCanvasContainer();
@@ -728,6 +755,7 @@ function maybeEncounter() {
   if (state.busy || Math.random() > 0.42) return;
   const pool = ["cat", "tourist"];
   if (state.hour >= 11 && state.hour < 21) pool.push("performer");
+  if (state.hour >= 10 && state.hour < 18) pool.push("taiyaki");
   if (state.hour >= 17) pool.push("matsuri");
   openEncounter(pool[Math.floor(Math.random() * pool.length)]);
 }
@@ -736,7 +764,8 @@ function openEncounter(kind) {
     cat: ["道の猫", "A cat is sitting in the lane, washing one ear.", "なでる Pet"],
     tourist: ["迷子", "Someone is turning a paper map upside down. They want the station.", "案内する Point the way"],
     performer: ["路上ライブ", "A case is open. Clap three times when the dot sits in the green.", "拍手する Clap"],
-    matsuri: ["小さな祭り", "Two lanterns and a drum have taken over a side street.", "のぞく Peek"]
+    matsuri: ["小さな祭り", "A goldfish stall has taken the corner. Scoop the one that glows.", "すくう Scoop"],
+    taiyaki: ["たい焼き", "The iron is hot. Tap while the fish is face up.", "返す Flip"]
   }[kind];
   state.busy = true;
   document.getElementById("enc-title").textContent = copy[0];
@@ -750,6 +779,7 @@ function openEncounter(kind) {
 }
 function resolveEncounter(kind) {
   cancelAnimationFrame(performerFrame);
+  clearInterval(miniTimer);
   if (kind === "cat") {
     state.yen += 40;
     giveToy({ id: "street-cat", name: "Street hello", nameJa: "道の猫" });
@@ -761,6 +791,10 @@ function resolveEncounter(kind) {
   } else if (kind === "matsuri") {
     state.yen += 100;
     giveToy({ id: "matsuri", name: "Little festival", nameJa: "小さな祭り" });
+  } else if (kind === "taiyaki") {
+    state.yen += 50;
+    noteDish("taiyaki-street", "Face-up, three times.");
+    giveToy({ id: "taiyaki", name: "Taiyaki", nameJa: "たい焼き" });
   }
   document.getElementById("encounter").hidden = true;
   state.busy = false;
@@ -794,6 +828,59 @@ function startPerformer() {
   };
 }
 
+function startTaiyaki() {
+  document.getElementById("enc-yes").hidden = true;
+  document.getElementById("enc-play").innerHTML = `<button class="btn primary" id="taiyaki-fish" type="button" style="width:100%">たい焼き</button><p class="sub" id="taiyaki-count">0 / 3 face up</p>`;
+  let up = false;
+  let hits = 0;
+  const fish = document.getElementById("taiyaki-fish");
+  clearInterval(miniTimer);
+  miniTimer = setInterval(() => {
+    up = !up;
+    fish.textContent = up ? "表 face up" : "裏 face down";
+    fish.style.background = up ? "#f28aaa" : "";
+  }, 700);
+  fish.onclick = () => {
+    if (!up) { hits = 0; showToast("That side is still the iron."); return; }
+    hits += 1;
+    document.getElementById("taiyaki-count").textContent = hits + " / 3 face up";
+    if (hits >= 3) { clearInterval(miniTimer); resolveEncounter("taiyaki"); }
+  };
+}
+function startScoop() {
+  document.getElementById("enc-yes").hidden = true;
+  document.getElementById("enc-play").innerHTML = `<div class="rhythm" id="scoop-row">
+      <button type="button" data-fish="0">金</button>
+      <button type="button" data-fish="1">魚</button>
+      <button type="button" data-fish="2">すくい</button>
+    </div><p class="sub" id="scoop-count">0 / 2</p>`;
+  const buttons = [...document.querySelectorAll("[data-fish]")];
+  let i = 0;
+  let hits = 0;
+  clearInterval(miniTimer);
+  miniTimer = setInterval(() => {
+    buttons.forEach((b, n) => b.classList.toggle("lit", n === i));
+    i = (i + 1) % buttons.length;
+  }, 520);
+  buttons.forEach((b) => {
+    b.onclick = () => {
+      const lit = buttons.findIndex((x) => x.classList.contains("lit"));
+      if (Number(b.dataset.fish) !== lit) { showToast("The fish slipped away."); return; }
+      hits += 1;
+      document.getElementById("scoop-count").textContent = hits + " / 2";
+      if (hits >= 2) { clearInterval(miniTimer); resolveEncounter("matsuri"); }
+    };
+  });
+}
+function coinPop(text) {
+  const host = document.getElementById("scene");
+  if (!host) return;
+  const el = document.createElement("div");
+  el.className = "coin-pop";
+  el.textContent = text;
+  host.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
 function showScene(mission) {
   const art = document.getElementById("scene-art");
   try { art.innerHTML = renderScene(mission.id); }
@@ -978,9 +1065,23 @@ function runTiming(successLine) {
   timingFrame = requestAnimationFrame(loop);
   btn.onclick = () => {
     const x = Number(dot.dataset.x || 0);
-    if (x > 0.42 && x < 0.58) {
+    const lastTrain = state.hour >= 21;
+    const lo = lastTrain ? 0.47 : 0.42;
+    const hi = lastTrain ? 0.53 : 0.58;
+    if (x > lo && x < hi) {
       cancelAnimationFrame(timingFrame);
-      finish(successLine || "You slipped through just as the doors kissed shut.");
+      const mission = cardPlace && missionById(cardPlace.mission);
+      if (mission && mission.id === "station" && done("station")) {
+        const fresh = noteEki(cardPlace);
+        chime();
+        showToast(fresh ? "駅スタンプ " + cardPlace.nameJa + "  +¥30" : cardPlace.nameJa + " is already stamped.");
+        save();
+        renderHud();
+        closeCard();
+        return;
+      }
+      if (lastTrain) state.yen += 80;
+      finish((lastTrain ? "Last train. " : "") + (successLine || "You slipped through just as the doors kissed shut."));
     } else {
       showToast("Not in the green. Try again.");
     }
@@ -1083,7 +1184,10 @@ function finish(detailLine) {
     : countDone(everyday()) + 1 === everyday().length;
   state.completed[m.id] = { at: Date.now(), placeId: cardPlace.id, detail: detailLine || "" };
   rememberStamp(cardPlace, m.id);
-  state.rewardLine = detailLine || m.reward || "";
+  if (typeof noteDish === "function") noteDish(m.id, detailLine);
+  if (m.id === "station" && typeof noteEki === "function") noteEki(cardPlace);
+  const localLine = typeof noteLocals === "function" ? noteLocals(m.id) : "";
+  state.rewardLine = [detailLine || m.reward || "", localLine, seasonLine()].filter(Boolean).join(" ");
   if (state.activeId === m.id) {
     const n = nextIncomplete();
     if (n) state.activeId = n.id;
@@ -1091,6 +1195,7 @@ function finish(detailLine) {
   cardMode = "reward";
   save();
   chime();
+  coinPop("+" + (EARN[m.id] ?? 170));
   burst();
   renderCard();
   renderHud();
@@ -1259,8 +1364,43 @@ function bind() {
     save();
   });
   document.getElementById("btn-book").addEventListener("click", () => renderBook());
+  document.getElementById("btn-home").addEventListener("click", () => renderHome());
+  document.getElementById("home-close").addEventListener("click", () => { document.getElementById("home").hidden = true; });
+  document.getElementById("room-shelf").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-decor]");
+    if (!b) return;
+    if (!state.room) state.room = [];
+    const id = b.dataset.decor;
+    if (state.room.includes(id)) state.room = state.room.filter((x) => x !== id);
+    else if (state.room.length < 6) state.room.push(id);
+    save();
+    renderHome();
+  });
+  document.getElementById("sticker-row").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-sticker]");
+    if (!b) return;
+    if (!state.draft) state.draft = [];
+    if (state.draft.length < 6) state.draft.push({ id: b.dataset.sticker });
+    renderHome();
+  });
+  document.getElementById("photo-save").addEventListener("click", () => {
+    if (!state.draft || !state.draft.length) { showToast("Add a sticker first."); return; }
+    if (!state.photos) state.photos = [];
+    state.photos.unshift({ stickers: state.draft.slice(), at: Date.now() });
+    state.photos = state.photos.slice(0, 8);
+    state.draft = [];
+    chime();
+    save();
+    renderHome();
+    showToast("写真を残した。 Kept on this device.");
+  });
   document.getElementById("book-tab-places").addEventListener("click", () => { state.bookTab = "places"; renderBook(); });
   document.getElementById("book-tab-toys").addEventListener("click", () => { state.bookTab = "toys"; renderBook(); });
+  document.getElementById("book-tab-friends").addEventListener("click", () => { state.bookTab = "friends"; renderBook(); });
+  const foodTabBtn = document.getElementById("book-tab-food");
+  const ekiTabBtn = document.getElementById("book-tab-eki");
+  if (foodTabBtn) foodTabBtn.addEventListener("click", () => { state.bookTab = "food"; renderBook(); });
+  if (ekiTabBtn) ekiTabBtn.addEventListener("click", () => { state.bookTab = "eki"; renderBook(); });
   document.getElementById("book-close").addEventListener("click", () => { document.getElementById("book").hidden = true; });
   document.getElementById("book-list").addEventListener("click", (e) => {
     const charm = e.target.closest("[data-charm]");
@@ -1268,6 +1408,15 @@ function bind() {
       state.charm = charm.dataset.charm;
       save();
       renderBook();
+      return;
+    }
+    const gate = e.target.closest("[data-eki]");
+    if (gate && map) {
+      const st = STATIONS.find((s) => s.id === gate.dataset.eki);
+      if (!st || (st.east && !state.east)) return;
+      document.getElementById("book").hidden = true;
+      state.userPanned = false;
+      map.flyTo({ center: [st.lng, st.lat], zoom: 16.4, duration: 1100 });
       return;
     }
     const row = e.target.closest("[data-stamp]");
@@ -1281,10 +1430,13 @@ function bind() {
   document.getElementById("enc-yes").addEventListener("click", () => {
     const kind = document.getElementById("encounter").dataset.kind;
     if (kind === "performer") { startPerformer(); return; }
+    if (kind === "taiyaki") { startTaiyaki(); return; }
+    if (kind === "matsuri") { startScoop(); return; }
     resolveEncounter(kind);
   });
   document.getElementById("enc-no").addEventListener("click", () => {
     cancelAnimationFrame(performerFrame);
+    clearInterval(miniTimer);
     document.getElementById("encounter").hidden = true;
     state.busy = false;
   });
@@ -1387,7 +1539,8 @@ function startAmbient() {
   let i = 0;
   const tick = () => {
     if (state.muted) { musicTimer = null; return; }
-    tone(ctx, notes[i % notes.length], ctx.currentTime, 0.7, 0.008);
+    tone(ctx, notes[i % notes.length], ctx.currentTime, 0.9, 0.007);
+    tone(ctx, notes[i % notes.length] / 2, ctx.currentTime, 1.1, 0.004);
     i += 1;
     musicTimer = setTimeout(tick, 1280);
   };
@@ -1439,9 +1592,24 @@ function showCoach() {
 function renderBook() {
   const blurb = document.getElementById("book-blurb");
   const box = document.getElementById("book-list");
-  document.getElementById("book-tab-places").classList.toggle("on", state.bookTab !== "toys");
+  document.getElementById("book-tab-places").classList.toggle("on", state.bookTab === "places");
   document.getElementById("book-tab-toys").classList.toggle("on", state.bookTab === "toys");
-  if (state.bookTab === "toys") {
+  const friendsTab = document.getElementById("book-tab-friends");
+  if (friendsTab) friendsTab.classList.toggle("on", state.bookTab === "friends");
+  const foodTab = document.getElementById("book-tab-food");
+  const ekiTab = document.getElementById("book-tab-eki");
+  if (foodTab) foodTab.classList.toggle("on", state.bookTab === "food");
+  if (ekiTab) ekiTab.classList.toggle("on", state.bookTab === "eki");
+  if (state.bookTab === "friends") {
+    blurb.textContent = "Four locals. Hearts fill when a small favor is done.";
+    box.innerHTML = `<div class="toy-grid">${friendsHtml()}</div>`;
+  } else if (state.bookTab === "food") {
+    blurb.textContent = (state.foods || []).length + " dishes tried";
+    box.innerHTML = `<div class="toy-grid">${dishesHtml()}</div>`;
+  } else if (state.bookTab === "eki") {
+    blurb.textContent = (state.eki || []).length + " / " + STATIONS.length + " gates";
+    box.innerHTML = ekiHtml();
+  } else if (state.bookTab === "toys") {
     blurb.textContent = rankName() + " · streak " + (state.streak || 0) + " · today " + (state.todayCount || 0) + "/3";
     const badges = (state.badges || []).map((id) => `<span class="badge">${esc(BADGE_NAME[id] || id)}</span>`).join("") || "<span class=\"sub\">No badges yet.</span>";
     const charms = CHARMS.map((c) => {
@@ -1474,6 +1642,7 @@ function startGame(fromSave) {
   const desktop = window.matchMedia("(min-width: 900px)").matches;
   document.getElementById("quest").hidden = !desktop;
   if (fromSave) showToast("つづきから。 Stamps restored on this device.");
+  else showToast(SEASON_LABEL[seasonId()] + " · " + seasonLine());
   syncRain();
   requestAnimationFrame(frame);
 }
@@ -1528,6 +1697,12 @@ function bootSelect() {
     state.goalDone = "";
     state.coach = 0;
     state.walked = 0;
+    state.locals = {};
+    state.foods = [];
+    state.eki = [];
+    state.room = [];
+    state.photos = [];
+    state.draft = [];
     save();
     startGame(false);
   });
@@ -1558,7 +1733,12 @@ function bootSelect() {
       todayCount: data.todayCount || 0,
       goalDone: data.goalDone || "",
       coach: data.coach ?? 99,
-      rain: !!data.rain
+      rain: !!data.rain,
+      locals: data.locals || {},
+      foods: data.foods || [],
+      eki: data.eki || [],
+      room: data.room || [],
+      photos: data.photos || []
     });
     backfillStamps();
     startGame(true);

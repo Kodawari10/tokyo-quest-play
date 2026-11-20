@@ -44,6 +44,7 @@
       <div class="hud-buttons">
         <button id="btn-quest" class="icon-btn" aria-label="Quests">📜</button>
         <button id="btn-book" class="icon-btn" aria-label="Stamp book">📓</button>
+        <button id="btn-home" class="icon-btn" aria-label="Your room">🏠</button>
         <button id="btn-train" class="icon-btn" aria-label="Train">🚃</button>
         <button id="btn-recenter" class="icon-btn" aria-label="Back to me">◎</button>
         <button id="btn-rain" class="icon-btn" aria-label="Soft rain">☂</button>
@@ -102,9 +103,24 @@
         <div class="tabs">
           <button id="book-tab-places" class="tab on" type="button">場所 Places</button>
           <button id="book-tab-toys" class="tab" type="button">コレクション</button>
+          <button id="book-tab-friends" class="tab" type="button">ともだち</button>
+          <button id="book-tab-food" class="tab" type="button">ごはん</button>
+          <button id="book-tab-eki" class="tab" type="button">駅</button>
         </div>
         <p class="sub" id="book-blurb"></p>
         <div id="book-list" class="train-list"></div>
+      </div>
+    </div>
+    <div id="home" class="modal" hidden>
+      <div class="card home-card">
+        <button id="home-close" class="x" aria-label="Close">×</button>
+        <h3>へや Your room</h3>
+        <p class="sub" id="home-blurb"></p>
+        <div id="room-view"></div>
+        <div id="room-shelf" class="toy-grid"></div>
+        <div class="sticker-row" id="sticker-row"></div>
+        <button id="photo-save" class="btn" type="button">この写真を残す Keep this photo</button>
+        <div id="album"></div>
       </div>
     </div>
     <div id="coach" class="coach" hidden>
@@ -152,6 +168,8 @@
   <script src="js/world.js"></script>
   <script src="js/scenes.js"></script>
   <script src="js/houses.js"></script>
+  <script src="js/town.js"></script>
+  <script src="js/life.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>
